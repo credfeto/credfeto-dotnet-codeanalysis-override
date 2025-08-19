@@ -10,6 +10,10 @@
  - any: [ 'CHANGELOG.md' ]
 "Config Change":
  - any: [ 'src/**/*.json', '!src/global.json' ]
+"credfeto-dotnet-code-analysis-overrides":
+ - any: [ 'src/$Credfeto.DotNet.Code.Analysis.Overrides/**/*' ]
+"credfeto-dotnet-code-analysis-overrides-cmd":
+ - any: [ 'src/$Credfeto.DotNet.Code.Analysis.Overrides.Cmd/**/*' ]
 "github-actions":
  - any: [ '.github/workflows/*.yml' ]
 "Markdown":

@@ -30,6 +30,14 @@
    color: "d8bb50"
    description: "Configuration files changes"
 
+ - name: "credfeto-dotnet-code-analysis-overrides"
+   color: "96f7d2"
+   description: "Changes in Credfeto.DotNet.Code.Analysis.Overrides project"
+
+ - name: "credfeto-dotnet-code-analysis-overrides-cmd"
+   color: "96f7d2"
+   description: "Changes in Credfeto.DotNet.Code.Analysis.Overrides.Cmd project"
+
  - name: "dependencies"
    color: "0366d6"
    description: "Updates to dependencies"
