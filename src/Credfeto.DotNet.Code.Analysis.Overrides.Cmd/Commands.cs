@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -48,8 +49,7 @@ internal sealed class Commands
             return;
         }
 
-        XmlDocument doc = new();
-        doc.Load(rulesetFileName);
+        XmlDocument doc = await LoadXmlAsync(rulesetFileName);
 
         foreach (RuleChange change in changes)
         {
@@ -58,6 +58,18 @@ internal sealed class Commands
         }
 
         doc.Save(rulesetFileName);
+    }
+
+    private static async ValueTask<XmlDocument> LoadXmlAsync(string fileName)
+    {
+        await using (Stream stream = File.OpenRead(fileName))
+        {
+            XmlDocument doc = new();
+            doc.Load(stream);
+
+            return doc;
+        }
+
     }
 
 }
