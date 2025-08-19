@@ -49,14 +49,19 @@ internal sealed class Commands
             return;
         }
 
+        bool changed = false;
         XmlDocument ruleSet = await RuleSet.LoadAsync(rulesetFileName);
 
         foreach (RuleChange change in changes)
         {
             this._logger.ChangingState(change.RuleSet, rule: change.Rule, change.State);
-            ruleSet.ChangeValue(ruleSet: change.RuleSet, rule: change.Rule, name: change.Description, newState: change.State);
+            bool hasChanged = ruleSet.ChangeValue(ruleSet: change.RuleSet, rule: change.Rule, name: change.Description, newState: change.State);
+            changed |= hasChanged;
         }
 
-        await RuleSet.SaveAsync(rulesetFileName, ruleSet);
+        if (changed)
+        {
+            await RuleSet.SaveAsync(rulesetFileName, ruleSet);
+        }
     }
 }
