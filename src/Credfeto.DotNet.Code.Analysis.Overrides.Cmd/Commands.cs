@@ -49,27 +49,14 @@ internal sealed class Commands
             return;
         }
 
-        XmlDocument doc = await LoadXmlAsync(rulesetFileName);
+        XmlDocument ruleSet = await RuleSet.LoadAsync(rulesetFileName);
 
         foreach (RuleChange change in changes)
         {
             this._logger.ChangingState(change.RuleSet, rule: change.Rule, change.State);
-            doc.ChangeValue(ruleSet: change.RuleSet, rule: change.Rule, name: change.Description, newState: change.State);
+            ruleSet.ChangeValue(ruleSet: change.RuleSet, rule: change.Rule, name: change.Description, newState: change.State);
         }
 
-        doc.Save(rulesetFileName);
+        await RuleSet.SaveAsync(rulesetFileName, ruleSet);
     }
-
-    private static async ValueTask<XmlDocument> LoadXmlAsync(string fileName)
-    {
-        await using (Stream stream = File.OpenRead(fileName))
-        {
-            XmlDocument doc = new();
-            doc.Load(stream);
-
-            return doc;
-        }
-
-    }
-
 }

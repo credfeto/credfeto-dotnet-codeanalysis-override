@@ -5,13 +5,13 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides;
 
 public static class XmlUpdater
 {
-    public static void ChangeValue(this XmlDocument xmlDoc, string ruleSet, string rule, string name, string newState)
+    public static void ChangeValue(this XmlDocument xmlRuleSet, string ruleSet, string rule, string name, string newState)
     {
         // Construct the XPath query to find the Rule element
         string query = $"//RuleSet/Rules[@AnalyzerId='{ruleSet}']/Rule[@Id='{rule}']";
 
         // Find the element using XPath
-        XmlElement? element = xmlDoc.SelectSingleNode(query) as XmlElement;
+        XmlElement? element = xmlRuleSet.SelectSingleNode(query) as XmlElement;
 
         if (element is null)
         {
