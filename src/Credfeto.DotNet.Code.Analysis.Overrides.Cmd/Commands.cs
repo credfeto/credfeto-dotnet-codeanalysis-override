@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -39,7 +38,11 @@ internal sealed class Commands
 
     [Command("ruleset", Description = "Update codeanalysiis.ruleset")]
     [SuppressMessage(category: "ReSharper", checkId: "UnusedMember.Global", Justification = "Used by Cocona")]
-    public async Task UpdateRulesetAsync(string rulesetFileName, string changesFileName)
+    public async Task UpdateRulesetAsync(
+        [Option(name: "ruleset", ['r'], Description = "ruleset file to change")]
+        string rulesetFileName,
+        [Option(name: "changes", ['c'], Description = "file of changes to apply")]
+        string changesFileName)
     {
         IReadOnlyList<RuleChange> changes = await ChangeSet.LoadAsync(changesFileName, CancellationToken);
 
