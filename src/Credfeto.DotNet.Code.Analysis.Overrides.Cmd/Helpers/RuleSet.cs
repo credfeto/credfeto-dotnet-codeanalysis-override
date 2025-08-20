@@ -15,19 +15,18 @@ internal static class RuleSet
 
             return doc;
         }
-
     }
 
     public static async ValueTask SaveAsync(string project, XmlDocument doc)
     {
         XmlWriterSettings settings = new()
-                                     {
-                                         Indent = true,
-                                         IndentChars = "  ",
-                                         NewLineOnAttributes = false,
-                                         OmitXmlDeclaration = true,
-                                         Async = true,
-                                     };
+        {
+            Indent = true,
+            IndentChars = "  ",
+            NewLineOnAttributes = false,
+            OmitXmlDeclaration = true,
+            Async = true,
+        };
 
         await using (XmlWriter xmlWriter = XmlWriter.Create(outputFileName: project, settings: settings))
         {
