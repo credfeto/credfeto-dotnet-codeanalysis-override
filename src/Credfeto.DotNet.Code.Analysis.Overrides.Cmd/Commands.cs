@@ -39,10 +39,9 @@ internal sealed class Commands
     [Command("ruleset", Description = "Update codeanalysiis.ruleset")]
     [SuppressMessage(category: "ReSharper", checkId: "UnusedMember.Global", Justification = "Used by Cocona")]
     public async Task UpdateRulesetAsync(
-        [Option(name: "ruleset", ['r'], Description = "ruleset file to change")]
-        string rulesetFileName,
-        [Option(name: "changes", ['c'], Description = "file of changes to apply")]
-        string changesFileName)
+        [Option(name: "ruleset", ['r'], Description = "ruleset file to change")] string rulesetFileName,
+        [Option(name: "changes", ['c'], Description = "file of changes to apply")] string changesFileName
+    )
     {
         IReadOnlyList<RuleChange> changes = await ChangeSet.LoadAsync(changesFileName, CancellationToken);
 
@@ -58,7 +57,12 @@ internal sealed class Commands
         foreach (RuleChange change in changes)
         {
             this._logger.ChangingState(change.RuleSet, rule: change.Rule, change.State);
-            bool hasChanged = ruleSet.ChangeValue(ruleSet: change.RuleSet, rule: change.Rule, name: change.Description, newState: change.State);
+            bool hasChanged = ruleSet.ChangeValue(
+                ruleSet: change.RuleSet,
+                rule: change.Rule,
+                name: change.Description,
+                newState: change.State
+            );
             changed |= hasChanged;
         }
 
