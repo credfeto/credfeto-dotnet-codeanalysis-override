@@ -8,7 +8,7 @@
     <Company>Mark Ridgwell</Company>
     <Copyright>Mark Ridgwell</Copyright>
     <DebuggerSupport>true</DebuggerSupport>
-    <Description>Dotnet code analysis override</Description>
+    <Description>Dotnet code analys rule management utilities</Description>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <EnableMicrosoftExtensionsConfigurationBinderSourceGenerator>true</EnableMicrosoftExtensionsConfigurationBinderSourceGenerator>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
@@ -38,10 +38,10 @@
     <OutputType>Library</OutputType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReleaseNotes>$(ReleaseNotes)</PackageReleaseNotes>
-    <PackageTags>Nuget;update;tool;packages</PackageTags>
-    <Product>Repository Update Tool</Product>
+    <PackageTags>code-analysis;tool;manager</PackageTags>
+    <Product>Code analysis rule manager</Product>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/credfeto/credfeto-dotnet-repo-tools</RepositoryUrl>
+    <RepositoryUrl>https://github.com/credfeto/credfeto-dotnet-codeanalysis-override</RepositoryUrl>
     <RunAOTCompilation>false</RunAOTCompilation>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
