@@ -61,7 +61,8 @@ internal sealed class Commands
                 ruleSet: change.RuleSet,
                 rule: change.Rule,
                 name: change.Description,
-                newState: change.State
+                newState: change.State,
+                logger: this._logger
             );
             changed |= hasChanged;
         }
