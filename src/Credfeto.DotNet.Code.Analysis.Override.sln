@@ -9,6 +9,7 @@ ProjectSection(SolutionItems) = preProject
 	global.json = global.json
 	..\CHANGELOG.md = ..\CHANGELOG.md
 	..\README.md = ..\README.md
+	Directory.Build.props = Directory.Build.props
 EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Credfeto.DotNet.Code.Analysis.Overrides", "Credfeto.DotNet.Code.Analysis.Overrides\Credfeto.DotNet.Code.Analysis.Overrides.csproj", "{06306A76-89C3-4D6C-9D1A-A937D376115B}"
