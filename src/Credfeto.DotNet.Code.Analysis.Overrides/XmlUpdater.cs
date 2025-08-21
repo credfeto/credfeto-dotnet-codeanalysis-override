@@ -7,9 +7,17 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides;
 
 public static class XmlUpdater
 {
-    public static bool ChangeValue(this XmlDocument xmlRuleSet, string ruleSet, string rule, string name, string newState, ILogger logger)
+    public static bool ChangeValue(
+        this XmlDocument xmlRuleSet,
+        string ruleSet,
+        string rule,
+        string name,
+        string newState,
+        ILogger logger
+    )
     {
-        XmlElement? element = xmlRuleSet.SelectSingleNode($"//RuleSet/Rules[@AnalyzerId='{ruleSet}']/Rule[@Id='{rule}']") as XmlElement;
+        XmlElement? element =
+            xmlRuleSet.SelectSingleNode($"//RuleSet/Rules[@AnalyzerId='{ruleSet}']/Rule[@Id='{rule}']") as XmlElement;
 
         if (element is null)
         {
@@ -28,7 +36,13 @@ public static class XmlUpdater
         }
 
         element.SetAttribute(name: "Action", value: newState);
-        logger.RuleChanged(ruleSet: ruleSet, rule: rule, name: name, existingSetting: existingValue, newSetting: newState);
+        logger.RuleChanged(
+            ruleSet: ruleSet,
+            rule: rule,
+            name: name,
+            existingSetting: existingValue,
+            newSetting: newState
+        );
 
         return true;
     }
