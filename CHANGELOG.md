@@ -10,6 +10,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Fixed
 ### Changed
 - Used source generated logging
+- Dependencies - Updated Credfeto.Version.Information.Generator to 1.0.114.790
 ### Removed
 ### Deployment Changes
 
