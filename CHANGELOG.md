@@ -11,6 +11,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Changed
 - Used source generated logging
 - Dependencies - Updated Credfeto.Version.Information.Generator to 1.0.114.790
+- Dependencies - Updated FunFair.CodeAnalysis to 7.1.22.1366
 ### Removed
 ### Deployment Changes
 
