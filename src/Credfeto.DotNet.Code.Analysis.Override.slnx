@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/Config/">
+    <File Path="../CHANGELOG.md" />
+    <File Path="../README.md" />
+    <File Path="CodeAnalysis.ruleset" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+  </Folder>
+  <Project Path="Credfeto.DotNet.Code.Analysis.Overrides.Cmd/Credfeto.DotNet.Code.Analysis.Overrides.Cmd.csproj" />
+  <Project Path="Credfeto.DotNet.Code.Analysis.Overrides/Credfeto.DotNet.Code.Analysis.Overrides.csproj" />
+</Solution>
