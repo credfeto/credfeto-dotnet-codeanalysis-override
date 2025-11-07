@@ -2,9 +2,9 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Helpers;
+namespace Credfeto.DotNet.Code.Analysis.Overrides.Helpers;
 
-internal static class RuleSet
+public static class RuleSet
 {
     public static async ValueTask<XmlDocument> LoadAsync(string fileName)
     {

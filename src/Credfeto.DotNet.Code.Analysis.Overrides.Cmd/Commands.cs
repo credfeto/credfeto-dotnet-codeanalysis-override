@@ -4,9 +4,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Cocona;
-using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Helpers;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.LoggingExtensions;
-using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Models;
+using Credfeto.DotNet.Code.Analysis.Overrides.Helpers;
+using Credfeto.DotNet.Code.Analysis.Overrides.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Cmd;

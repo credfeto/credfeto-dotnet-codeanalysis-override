@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 
-namespace Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Models;
+namespace Credfeto.DotNet.Code.Analysis.Overrides.Models;
 
 [DebuggerDisplay("{RuleSet}.{Rule} => {State} ({Description})")]
 public sealed class RuleChange
