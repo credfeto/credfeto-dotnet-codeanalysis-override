@@ -14,6 +14,8 @@
  - any: [ 'src/$Credfeto.DotNet.Code.Analysis.Overrides/**/*' ]
 "credfeto-dotnet-code-analysis-overrides-cmd":
  - any: [ 'src/$Credfeto.DotNet.Code.Analysis.Overrides.Cmd/**/*' ]
+"credfeto-dotnet-code-analysis-overrides-tests":
+ - any: [ 'src/$Credfeto.DotNet.Code.Analysis.Overrides.Tests/**/*' ]
 "github-actions":
  - any: [ '.github/workflows/*.yml' ]
 "Markdown":
