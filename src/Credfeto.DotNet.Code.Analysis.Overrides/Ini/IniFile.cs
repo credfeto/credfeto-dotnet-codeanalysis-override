@@ -26,22 +26,29 @@ public sealed class IniFile
     {
         StringBuilder stringBuilder = new();
 
+        bool previousSection = false;
+
         if (!this.Global.IsEmpty)
         {
-            stringBuilder = this.Global.Save(stringBuilder).AppendLine();
+            stringBuilder = this.Global.Save(stringBuilder);
+            previousSection = true;
         }
 
-        foreach( (_, string section, IniSection values) in this.NamedSections.Select( item => ( order: item.Value.Order, section: item.Key, entries: item.Value ) )
-                                                                   .OrderBy(item => item.order))
+        foreach ((_, string section, IniSection values) in this.NamedSections.Select(item => (order: item.Value.Order, section: item.Key, entries: item.Value))
+                                                               .OrderBy(item => item.order))
         {
             if (!values.IsEmpty)
             {
+                if (previousSection)
+                {
+                    stringBuilder = stringBuilder.AppendLine();
+                }
+
                 stringBuilder = stringBuilder.AppendLine($"[{section}]");
-                stringBuilder = this.Global.Save(stringBuilder).AppendLine();
+                stringBuilder = this.Global.Save(stringBuilder);
+                previousSection = true;
             }
-
         }
-
 
         return stringBuilder.ToString();
     }
@@ -65,7 +72,8 @@ public sealed class IniFile
 
         foreach (string line in lines)
         {
-            if (string.IsNullOrWhiteSpace(line) || IniSectionRegex.Comment().IsMatch(line))
+            if (string.IsNullOrWhiteSpace(line) || IniSectionRegex.Comment()
+                                                                  .IsMatch(line))
             {
                 commentLines.Add(line);
 
@@ -80,6 +88,7 @@ public sealed class IniFile
                 {
                     currentSection.AppendLine(commentLine);
                 }
+
                 commentLines.Clear();
                 namedSections.Add(key: newSection, value: currentSection);
 
