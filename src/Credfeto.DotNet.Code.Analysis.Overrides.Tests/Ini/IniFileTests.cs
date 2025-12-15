@@ -1,3 +1,4 @@
+using System;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 using FunFair.Test.Common;
 using Xunit;
@@ -22,8 +23,10 @@ public sealed class IniFileTests : IntegrationTestBase
     [Fact]
     public void LoadJustGlobalNoComments()
     {
-        const string original = "global = true";
-        const string expected = "global = true\n\n";
+        const string original = @"global = true
+";
+        const string expected = @"global = true
+";
         IniFile file = IniFile.Load(original);
 
         this.SaveAndCheck(file: file, expected: expected);
@@ -33,6 +36,6 @@ public sealed class IniFileTests : IntegrationTestBase
     {
         string updated = file.Save();
         this.Output.WriteLine(updated);
-        Assert.Equal(expected, updated);
+        Assert.Equal(expected.Replace(Environment.NewLine, "\n", StringComparison.Ordinal), updated);
     }
 }
