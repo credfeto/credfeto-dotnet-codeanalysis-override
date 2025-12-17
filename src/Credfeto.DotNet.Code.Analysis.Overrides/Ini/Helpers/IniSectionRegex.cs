@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini;
+namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini.Helpers;
 
 internal static partial class IniSectionRegex
 {
