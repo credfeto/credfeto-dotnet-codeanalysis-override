@@ -71,8 +71,8 @@ public sealed class IniFile
 
         foreach (string line in lines)
         {
-            if (string.IsNullOrWhiteSpace(line) || IniSectionRegex.Comment()
-                                                                  .IsMatch(line))
+            if (string.IsNullOrWhiteSpace(line) || Helpers.IniSectionRegex.Comment()
+                                                          .IsMatch(line))
             {
                 commentLines.Add(line);
 
@@ -98,8 +98,8 @@ public sealed class IniFile
 
     private static bool IsSection(string line, [NotNullWhen(true)] out string? sectionTitle)
     {
-        Match match = IniSectionRegex.Section()
-                                     .Match(line);
+        Match match = Helpers.IniSectionRegex.Section()
+                             .Match(line);
 
         if (!match.Success)
         {
