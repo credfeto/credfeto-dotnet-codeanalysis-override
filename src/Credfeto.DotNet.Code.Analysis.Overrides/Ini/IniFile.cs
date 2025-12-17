@@ -34,7 +34,7 @@ public sealed class IniFile
             previousSection = true;
         }
 
-        foreach ((_, string section, IniSection values) in this.NamedSections.Select(item => (order: item.Value.Order, section: item.Key, entries: item.Value))
+        foreach ((_, string _, IniSection values) in this.NamedSections.Select(item => (order: item.Value.Order, section: item.Key, entries: item.Value))
                                                                .OrderBy(item => item.order))
         {
             if (!values.IsEmpty)
@@ -44,8 +44,7 @@ public sealed class IniFile
                     stringBuilder = stringBuilder.AppendLine();
                 }
 
-                stringBuilder = stringBuilder.AppendLine($"[{section}]");
-                stringBuilder = this.Global.Save(stringBuilder);
+                stringBuilder = values.Save(stringBuilder);
                 previousSection = true;
             }
         }
@@ -63,7 +62,7 @@ public sealed class IniFile
     private static IniFile Extract(in ReadOnlySpan<string> lines)
     {
         int order = 0;
-        IniSection globalSection = new(order);
+        IniSection globalSection = new(order: order, name: null, []);
         Dictionary<string, IniSection> namedSections = new(StringComparer.OrdinalIgnoreCase);
 
         IniSection currentSection = globalSection;
@@ -82,25 +81,16 @@ public sealed class IniFile
 
             if (IsSection(line: line, out string? newSection))
             {
-                currentSection = new(++order);
+                currentSection = new(order: ++order, name: newSection, sectionComments: commentLines);
 
-                foreach (string commentLine in commentLines)
-                {
-                    currentSection.AppendLine(commentLine);
-                }
-
-                commentLines.Clear();
+                commentLines = [];
                 namedSections.Add(key: newSection, value: currentSection);
 
                 continue;
             }
 
-            currentSection.AppendLine(line);
-        }
-
-        foreach (string commentLine in commentLines)
-        {
-            currentSection.AppendLine(commentLine);
+            currentSection.AppendPropertyLine(line: line, comments: commentLines);
+            commentLines = [];
         }
 
         return new(global: globalSection, namedSections: namedSections);
