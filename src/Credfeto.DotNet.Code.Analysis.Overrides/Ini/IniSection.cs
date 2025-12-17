@@ -12,9 +12,9 @@ public sealed class IniSection
     private readonly Dictionary<string, PropertyValue> _properties;
     private readonly List<string> _sectionComments;
 
-    public IniSection(int order, string? name, List<string> sectionComments)
+    public IniSection(int order, string? name, IReadOnlyList<string> sectionComments)
     {
-        this._sectionComments = sectionComments;
+        this._sectionComments = [..CleanComments(sectionComments)];
         this.Order = order;
         this.Name = name;
         this._properties = new(StringComparer.OrdinalIgnoreCase);
@@ -27,6 +27,44 @@ public sealed class IniSection
     // Allow for deletions
     public bool IsEmpty => this._properties.Values.Count == 0;
 
+    private static IEnumerable<string> CleanComments(IReadOnlyList<string> sectionComments)
+    {
+        bool headSeen = false;
+        bool previousWasBlankLine = false;
+
+        foreach (string line in sectionComments)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                if (!headSeen)
+                {
+                    continue;
+                }
+
+                previousWasBlankLine = true;
+            }
+            else
+            {
+                if (headSeen)
+                {
+                    if (previousWasBlankLine)
+                    {
+                        yield return "";
+
+                        previousWasBlankLine = false;
+                    }
+                }
+                else
+                {
+                    headSeen = true;
+                    previousWasBlankLine = false;
+                }
+
+                yield return line;
+            }
+        }
+    }
+
     public void AppendPropertyLine(string line, List<string> comments)
     {
         Match match = IniSectionRegex.Property()
@@ -35,7 +73,7 @@ public sealed class IniSection
         string key = match.Groups["Key"].Value;
         string value = match.Groups["Value"].Value;
 
-        this._properties.Add(key: key, new(value: value, comments));
+        this._properties.Add(key: key, new(value: value, [..CleanComments(comments)]));
     }
 
     public StringBuilder Save(StringBuilder stringBuilder)
@@ -46,7 +84,6 @@ public sealed class IniSection
         // * if it is a property with a comment append the comment to the end of the file
         // * If >1 blank line; skip
         // * Leave with the last line being a property or comment; no blank lines
-
 
         if (!string.IsNullOrWhiteSpace(this.Name))
         {
