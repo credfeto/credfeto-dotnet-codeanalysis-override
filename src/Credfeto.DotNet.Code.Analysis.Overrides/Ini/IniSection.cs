@@ -9,67 +9,63 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 [DebuggerDisplay("Order {Order}")]
 public sealed class IniSection
 {
-    private readonly Dictionary<int, string> _lines;
     private readonly Dictionary<string, PropertyValue> _properties;
-    private int _lineIndex;
+    private readonly List<string> _sectionComments;
 
-    public IniSection(int order)
+    public IniSection(int order, string? name, List<string> sectionComments)
     {
+        this._sectionComments = sectionComments;
         this.Order = order;
-        this._lineIndex = 0;
-        this._lines = [];
+        this.Name = name;
         this._properties = new(StringComparer.OrdinalIgnoreCase);
     }
 
     public int Order { get; }
 
+    public string? Name { get; }
+
     // Allow for deletions
     public bool IsEmpty => this._properties.Values.Count == 0;
 
-    public void AppendLine(string line)
+    public void AppendPropertyLine(string line, List<string> comments)
     {
-        int index = this._lineIndex++;
-
-        if (string.IsNullOrWhiteSpace(line))
-        {
-            this._lines.Add(key: index, value: "");
-
-            return;
-        }
-
-        this._lines.Add(key: index, value: line);
-
-        if (IsComment(line))
-        {
-            return;
-        }
-
         Match match = IniSectionRegex.Property()
                                      .Match(line);
 
         string key = match.Groups["Key"].Value;
         string value = match.Groups["Value"].Value;
 
-        this._properties.Add(key: key, new(lineIndex: index, value: value));
-    }
-
-    private static bool IsComment(string line)
-    {
-        return IniSectionRegex.Comment()
-                              .IsMatch(line);
+        this._properties.Add(key: key, new(value: value, comments));
     }
 
     public StringBuilder Save(StringBuilder stringBuilder)
     {
-        foreach (KeyValuePair<int, string> line in this._lines)
+        // Need to:
+        // * If it is a property and the value is different, then return the new value as a property
+        // * If it is a comment make comment type consistent in the file
+        // * if it is a property with a comment append the comment to the end of the file
+        // * If >1 blank line; skip
+        // * Leave with the last line being a property or comment; no blank lines
+
+
+        if (!string.IsNullOrWhiteSpace(this.Name))
         {
-            // Need to:
-            // * If it is a property and the value is different, then return the new value as a property
-            // * If it is a comment make comment type consistent in the file
-            // * if it is a property with a comment append the comment to the end of the file
-            // * If >1 blank line; skip
-            // * Leave with the last line being a property or comment; no blank lines
-            stringBuilder = stringBuilder.AppendLine(line.Value);
+            foreach (string comment in this._sectionComments)
+            {
+                stringBuilder = stringBuilder.AppendLine(comment);
+            }
+
+            stringBuilder = stringBuilder.AppendLine($"[{this.Name}]");
+        }
+
+        foreach ((string key, PropertyValue value) in this._properties)
+        {
+            foreach (string comment in value.Comments)
+            {
+                stringBuilder = stringBuilder.AppendLine(comment);
+            }
+
+            stringBuilder = stringBuilder.AppendLine($"{key} = {value.Value}");
         }
 
         return stringBuilder;
@@ -78,14 +74,16 @@ public sealed class IniSection
     [DebuggerDisplay("{LineIndex}: {Value}")]
     private sealed class PropertyValue
     {
-        public PropertyValue(int lineIndex, string value)
+        public PropertyValue(string value, List<string> comments)
         {
             this.Value = value;
-            this.LineIndex = lineIndex;
+            this.Comments = comments;
         }
 
         public int LineIndex { get; }
 
         public string Value { get; }
+
+        public List<string> Comments { get; }
     }
 }
