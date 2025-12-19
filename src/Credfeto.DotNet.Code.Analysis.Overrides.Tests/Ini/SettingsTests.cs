@@ -118,6 +118,44 @@ global = true # This is a root config
     }
 
     [Fact]
+    public void LoadNamedSectionNoComments()
+    {
+        const string original = @"[Named]
+test = true
+";
+        const string expected = @"[Named]
+test = true
+";
+        ISettings file = IniFile.Load(original);
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
+    public void LoadNamedSectionWithComments()
+    {
+        const string original = @"# Comment Line 1
+#Comment Line 2
+
+
+#Comment Line 3
+
+[Named]
+test = true
+";
+        const string expected = @"# Comment Line 1
+# Comment Line 2
+#
+# Comment Line 3
+[Named]
+test = true
+";
+        ISettings file = IniFile.Load(original);
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
     public void RoundTripMultipleSectionsComments()
     {
         const string original = @"# Editor configuration, see http://editorconfig.org
