@@ -67,14 +67,24 @@ internal sealed class Settings : ISettings
         this.Global.Delete(key);
     }
 
-    public IReadOnlyList<string> Comment(string key)
+    public IReadOnlyList<string> PropertyBlockComment(string key)
     {
-        return this.Global.Comment(key);
+        return this.Global.PropertyBlockComment(key);
     }
 
-    public void Comment(string key, IReadOnlyList<string> comments)
+    public void PropertyBlockComment(string key, IReadOnlyList<string> comments)
     {
-        this.Global.Comment(key: key, comments: comments);
+        this.Global.PropertyBlockComment(key: key, comments: comments);
+    }
+
+    public string PropertyLineComment(string key)
+    {
+        return this.Global.PropertyLineComment(key);
+    }
+
+    public void PropertyLineComment(string key, string comment)
+    {
+        this.Global.PropertyLineComment(key: key, comment: comment);
     }
 
     private StringBuilder SaveGlobalSection(ref bool previousSection)

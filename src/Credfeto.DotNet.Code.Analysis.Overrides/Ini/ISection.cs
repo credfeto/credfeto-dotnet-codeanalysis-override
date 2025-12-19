@@ -10,7 +10,11 @@ public interface ISection
 
     void Delete(string key);
 
-    IReadOnlyList<string> Comment(string key);
+    IReadOnlyList<string> PropertyBlockComment(string key);
 
-    void Comment(string key, IReadOnlyList<string> comments);
+    void PropertyBlockComment(string key, IReadOnlyList<string> comments);
+
+    string PropertyLineComment(string key);
+
+    void PropertyLineComment(string key, string comment);
 }
