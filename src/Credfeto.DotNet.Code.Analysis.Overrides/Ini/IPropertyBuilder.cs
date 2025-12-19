@@ -5,8 +5,6 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 public interface IPropertyBuilder<T>
     where T : ISection
 {
-    IPropertyBuilder<T> WithKey(string key);
-
     IPropertyBuilder<T> WithValue(string value);
 
     IPropertyBuilder<T> WithLineComment(string line);
