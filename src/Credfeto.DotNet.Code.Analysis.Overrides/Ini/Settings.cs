@@ -22,14 +22,9 @@ internal sealed class Settings : ISettings
 
     private IDictionary<string, Section> NamedSections { get; }
 
-    public ISection CreateSection(string sectionName, in ReadOnlySpan<string> comments)
+    public INamedSection CreateSection(string sectionName, in ReadOnlySpan<string> comments)
     {
-        if (string.IsNullOrWhiteSpace(sectionName))
-        {
-            throw new SectionAlreadyExistsException();
-        }
-
-        if (this.NamedSections.ContainsKey(sectionName))
+        if (string.IsNullOrWhiteSpace(sectionName) || this.NamedSections.ContainsKey(sectionName))
         {
             throw new SectionAlreadyExistsException();
         }
@@ -40,19 +35,11 @@ internal sealed class Settings : ISettings
         return section;
     }
 
-    public ISection? GetSection(string sectionName)
+    public INamedSection? GetSection(string sectionName)
     {
-        if (string.IsNullOrWhiteSpace(sectionName))
-        {
-            return this.Global;
-        }
-
-        if (this.NamedSections.TryGetValue(key: sectionName, out Section? section))
-        {
-            return section;
-        }
-
-        return null;
+        return this.NamedSections.TryGetValue(key: sectionName, out Section? section)
+            ? section
+            : null;
     }
 
     public string Save()
@@ -85,7 +72,7 @@ internal sealed class Settings : ISettings
         return this.Global.Comment(key);
     }
 
-    public void Comment(string key, in IReadOnlyList<string> comments)
+    public void Comment(string key, IReadOnlyList<string> comments)
     {
         this.Global.Comment(key: key, comments: comments);
     }

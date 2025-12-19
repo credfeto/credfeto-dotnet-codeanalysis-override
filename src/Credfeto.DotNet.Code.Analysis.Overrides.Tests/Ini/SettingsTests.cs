@@ -51,6 +51,44 @@ Example = 42
     }
 
     [Fact]
+    public void CreateAndAddNamedSectionWithPropertyComment()
+    {
+        const string expected = @"[Testing]
+# Hello World!
+Example = 42
+";
+
+        ISettings file = IniFile.Create();
+
+        INamedSection section = file.CreateSection(sectionName: "Testing", []);
+
+        section.Set(key: "Example", value: "42");
+        section.Comment(key: "Example", ["Hello World!"]);
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
+    public void CreateAndAddNamedSectionWithSectionAndPropertyComments()
+    {
+        const string expected = @"# This is a section Comment
+[Testing]
+# Hello World!
+Example = 42
+";
+
+        ISettings file = IniFile.Create();
+
+        INamedSection section = file.CreateSection(sectionName: "Testing", []);
+        section.SectionComment(["This is a section Comment"]);
+
+        section.Set(key: "Example", value: "42");
+        section.Comment(key: "Example", ["Hello World!"]);
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
     public void LoadEmpty()
     {
         const string original = "";
