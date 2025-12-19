@@ -6,9 +6,17 @@ internal static class Comments
 {
     public static string Parse(this string comment)
     {
-        return string.IsNullOrWhiteSpace(comment)
-            ? string.Empty
-            : string.Concat(str0: " ", comment.TrimEnd());
+        if (string.IsNullOrWhiteSpace(comment))
+        {
+            return string.Empty;
+        }
+
+        if (comment.StartsWith(' '))
+        {
+            return comment.TrimEnd();
+        }
+
+        return string.Concat(str0: " ", comment.TrimEnd());
     }
 
     public static IEnumerable<string> Clean(IEnumerable<string> sectionComments)
