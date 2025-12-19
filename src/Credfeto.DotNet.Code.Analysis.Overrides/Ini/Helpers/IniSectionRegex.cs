@@ -10,9 +10,9 @@ internal static partial class IniSectionRegex
     [GeneratedRegex(pattern: @"^\s*\[(?<Section>([^#;]|\\#|\\;)+)\]\s*([#;].*)?$", options: REGEX_OPTIONS, matchTimeoutMilliseconds: TIMEOUT_MS)]
     public static partial Regex Section();
 
-    [GeneratedRegex(pattern: @"^\s*[#;]", options: REGEX_OPTIONS, matchTimeoutMilliseconds: TIMEOUT_MS)]
+    [GeneratedRegex(pattern: @"^\s*[#;](?<Comment>.*)", options: REGEX_OPTIONS, matchTimeoutMilliseconds: TIMEOUT_MS)]
     public static partial Regex Comment();
 
-    [GeneratedRegex(pattern: @"^\s*(?<Key>[\w\.\-_]+)\s*[=:]\s*(?<Value>.*?)\s*([#;].*)?$", options: REGEX_OPTIONS, matchTimeoutMilliseconds: TIMEOUT_MS)]
+    [GeneratedRegex(pattern: @"^\s*(?<Key>[\w\.\-_]+)\s*[=:]\s*(?<Value>.*?)\s*([#;](?<Comment>.*))?$", options: REGEX_OPTIONS, matchTimeoutMilliseconds: TIMEOUT_MS)]
     public static partial Regex Property();
 }
