@@ -4,9 +4,9 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 
 public interface ISettings : ISection
 {
-    ISection CreateSection(string sectionName, in ReadOnlySpan<string> comments);
+    INamedSection CreateSection(string sectionName, in ReadOnlySpan<string> comments);
 
-    ISection? GetSection(string sectionName);
+    INamedSection? GetSection(string sectionName);
 
     string Save();
 }

@@ -12,5 +12,5 @@ public interface ISection
 
     IReadOnlyList<string> Comment(string key);
 
-    void Comment(string key, in IReadOnlyList<string> comments);
+    void Comment(string key, IReadOnlyList<string> comments);
 }
