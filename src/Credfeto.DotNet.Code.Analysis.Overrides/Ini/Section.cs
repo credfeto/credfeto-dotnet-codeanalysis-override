@@ -91,13 +91,6 @@ internal sealed class Section : ISection
 
     public StringBuilder Save(StringBuilder stringBuilder)
     {
-        // Need to:
-        // * If it is a property and the value is different, then return the new value as a property
-        // * If it is a comment make comment type consistent in the file
-        // * if it is a property with a comment append the comment to the end of the file
-        // * If >1 blank line; skip
-        // * Leave with the last line being a property or comment; no blank lines
-
         if (!string.IsNullOrWhiteSpace(this.Name))
         {
             stringBuilder = stringBuilder.AppendComments(comments: this._sectionComments)
