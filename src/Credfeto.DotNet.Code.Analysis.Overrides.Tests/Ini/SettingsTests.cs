@@ -13,11 +13,52 @@ public sealed class SettingsTests : IntegrationTestBase
     }
 
     [Fact]
+    public void CreateEmpty()
+    {
+        const string expected = "";
+
+        ISettings file = IniFile.Create();
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
+    public void CreateAndAddSetting()
+    {
+        const string expected = @"Example = 42
+";
+
+        ISettings file = IniFile.Create();
+
+        file.Set(key: "Example", value: "42");
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
+    public void CreateAndAddSettingWithComment()
+    {
+        const string expected = @"# Hello World!
+Example = 42
+";
+
+        ISettings file = IniFile.Create();
+
+        file.Set(key: "Example", value: "42");
+        file.Comment(key: "Example", ["Hello World!"]);
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
     public void LoadEmpty()
     {
-        ISettings file = IniFile.Load("");
+        const string original = "";
+        const string expected = "";
 
-        this.SaveAndCheck(file: file, expected: "");
+        ISettings file = IniFile.Load(original);
+
+        this.SaveAndCheck(file: file, expected: expected);
     }
 
     [Fact]
