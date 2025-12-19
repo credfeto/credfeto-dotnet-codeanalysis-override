@@ -74,6 +74,18 @@ Example = 42
     }
 
     [Fact]
+    public void LoadJustGlobalWithLineComment()
+    {
+        const string original = @"global = true#This is a root config
+";
+        const string expected = @"global = true # This is a root config
+";
+        ISettings file = IniFile.Load(original);
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
     public void LoadJustGlobalNoCommentsStandardisesSpacing()
     {
         const string original = @"global=true
