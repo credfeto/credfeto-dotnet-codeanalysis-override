@@ -4,6 +4,13 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini.Helpers;
 
 internal static class Comments
 {
+    public static string Parse(this string comment)
+    {
+        return string.IsNullOrWhiteSpace(comment)
+            ? string.Empty
+            : string.Concat(str0: " ", comment.TrimEnd());
+    }
+
     public static IEnumerable<string> Clean(IEnumerable<string> sectionComments)
     {
         bool headSeen = false;
