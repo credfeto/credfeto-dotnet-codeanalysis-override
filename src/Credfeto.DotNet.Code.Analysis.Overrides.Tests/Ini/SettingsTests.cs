@@ -62,7 +62,7 @@ Example = 42
     }
 
     [Fact]
-    public void LoadJustGlobalNoComments()
+    public void LoadGlobalNoComments()
     {
         const string original = @"global = true
 ";
@@ -74,11 +74,31 @@ Example = 42
     }
 
     [Fact]
-    public void LoadJustGlobalWithLineComment()
+    public void LoadGlobalWithLineComment()
     {
         const string original = @"global = true#This is a root config
 ";
         const string expected = @"global = true # This is a root config
+";
+        ISettings file = IniFile.Load(original);
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
+    public void LoadGlobalWithLineCommentAndCommentsAbove()
+    {
+        const string original = @"#This is a block comment
+#Line 2
+
+#Line 3
+global = true#This is a root config
+";
+        const string expected = @"# This is a block comment
+# Line 2
+#
+# Line 3
+global = true # This is a root config
 ";
         ISettings file = IniFile.Load(original);
 
