@@ -1,45 +1,47 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Exceptions;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 
 public static class PropertyBuilder
 {
-    public static IPropertyBuilder<ISettings> CreateProperty(this ISettings section)
+    public static IPropertyBuilder<ISettings> CreateProperty(this ISettings section, string key)
     {
-        return new GlobalPropertyBuilder<ISettings>(section);
+        if (section.Get(key) is not null)
+        {
+            // Needs better exception;
+            throw new PropertyNotFoundException();
+        }
+
+        return new TypedPropertyBuilder<ISettings>(section: section, key: key);
     }
 
-    public static IPropertyBuilder<INamedSection> CreateProperty(this INamedSection section)
+    public static IPropertyBuilder<INamedSection> CreateProperty(this INamedSection section, string key)
     {
-        return new GlobalPropertyBuilder<INamedSection>(section);
+        if (section.Get(key) is not null)
+        {
+            // Needs better exception;
+            throw new PropertyNotFoundException();
+        }
+
+        return new TypedPropertyBuilder<INamedSection>(section: section, key: key);
     }
 
-    private sealed class GlobalPropertyBuilder<T> : IPropertyBuilder<T>
+    [DebuggerDisplay("{_key}: {_value}")]
+    private sealed class TypedPropertyBuilder<T> : IPropertyBuilder<T>
         where T : ISection
     {
+        private readonly string _key;
         private readonly T _section;
         private IReadOnlyList<string>? _blockComment;
-        private string? _key;
         private string? _lineComment;
         private string? _value;
 
-        public GlobalPropertyBuilder(T section)
+        public TypedPropertyBuilder(T section, string key)
         {
             this._section = section;
-        }
-
-        public IPropertyBuilder<T> WithKey(string key)
-        {
-            if (this._section.Get(key) is not null)
-            {
-                // Needs better exception;
-                throw new PropertyNotFoundException();
-            }
-
             this._key = key;
-
-            return this;
         }
 
         public IPropertyBuilder<T> WithValue(string value)
@@ -65,12 +67,6 @@ public static class PropertyBuilder
 
         public T Apply()
         {
-            if (string.IsNullOrWhiteSpace(this._key))
-            {
-                // Needs better exception;
-                throw new PropertyNotFoundException();
-            }
-
             if (string.IsNullOrWhiteSpace(this._value))
             {
                 // Needs better exception;

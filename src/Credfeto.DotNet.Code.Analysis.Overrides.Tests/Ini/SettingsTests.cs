@@ -56,8 +56,7 @@ public sealed class SettingsTests : IntegrationTestBase
 ";
 
         ISettings file = IniFile.Create()
-                                .CreateProperty()
-                                .WithKey("Example")
+                                .CreateProperty("Example")
                                 .WithValue("42")
                                 .WithLineComment("This is a line comment")
                                 .Apply();
