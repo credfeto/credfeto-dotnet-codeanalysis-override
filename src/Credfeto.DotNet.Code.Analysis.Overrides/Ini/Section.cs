@@ -61,7 +61,7 @@ internal sealed class Section : ISection
         {
             propertyValue.Comments =
             [
-                ..comments.Select(ParseComment)
+                ..comments.Select(Comments.Parse)
             ];
 
             return;
@@ -75,13 +75,6 @@ internal sealed class Section : ISection
         return this._properties.TryGetValue(key: key, out PropertyValue? propertyValue)
             ? propertyValue.Comments
             : throw new PropertyNotFoundException();
-    }
-
-    private static string ParseComment(string comment)
-    {
-        return string.IsNullOrWhiteSpace(comment)
-            ? string.Empty
-            : string.Concat(str0: " ", str1: comment);
     }
 
     public void AppendPropertyLine(string key, string value, string lineComment, IReadOnlyList<string> comments)
@@ -100,7 +93,7 @@ internal sealed class Section : ISection
         foreach ((string key, PropertyValue propertyValue) in this._properties)
         {
             stringBuilder = stringBuilder.AppendComments(comments: propertyValue.Comments)
-                                         .AppendProperty(key: key, value: propertyValue.Value, lineComment: propertyValue.LineComment);
+                                         .AppendProperty(key: key, value: propertyValue.Value, propertyValue.LineComment.Parse());
         }
 
         return stringBuilder;
