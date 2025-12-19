@@ -179,7 +179,7 @@ public static class IniFile
                 this._commentStarted = true;
             }
 
-            this._commentLines = this._commentLines.Add(comment);
+            this._commentLines = this._commentLines.Add(comment.Parse());
         }
 
         public IReadOnlyList<string> OnSection()
