@@ -5,9 +5,9 @@ using Xunit;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Tests.Ini;
 
-public sealed class IniFileTests : IntegrationTestBase
+public sealed class SettingsTests : IntegrationTestBase
 {
-    public IniFileTests(ITestOutputHelper output)
+    public SettingsTests(ITestOutputHelper output)
         : base(output)
     {
     }
@@ -15,7 +15,7 @@ public sealed class IniFileTests : IntegrationTestBase
     [Fact]
     public void LoadEmpty()
     {
-        IniFile file = IniFile.Load("");
+        ISettings file = IniFile.Load("");
 
         this.SaveAndCheck(file: file, expected: "");
     }
@@ -27,7 +27,7 @@ public sealed class IniFileTests : IntegrationTestBase
 ";
         const string expected = @"global = true
 ";
-        IniFile file = IniFile.Load(original);
+        ISettings file = IniFile.Load(original);
 
         this.SaveAndCheck(file: file, expected: expected);
     }
@@ -39,7 +39,7 @@ public sealed class IniFileTests : IntegrationTestBase
 ";
         const string expected = @"global = true
 ";
-        IniFile file = IniFile.Load(original);
+        ISettings file = IniFile.Load(original);
 
         this.SaveAndCheck(file: file, expected: expected);
     }
@@ -93,15 +93,15 @@ max_line_length = 200
 indent_size = 2
 end_of_line = crlf
 ";
-        IniFile file = IniFile.Load(original);
+        ISettings file = IniFile.Load(original);
 
         this.SaveAndCheck(file: file, expected: expected);
     }
 
-    private void SaveAndCheck(IniFile file, string expected)
+    private void SaveAndCheck(ISettings file, string expected)
     {
         string updated = file.Save();
         this.Output.WriteLine(updated);
-        Assert.Equal(expected.Replace(Environment.NewLine, "\n", StringComparison.Ordinal), updated);
+        Assert.Equal(expected.Replace(oldValue: Environment.NewLine, newValue: "\n", comparisonType: StringComparison.Ordinal), actual: updated);
     }
 }
