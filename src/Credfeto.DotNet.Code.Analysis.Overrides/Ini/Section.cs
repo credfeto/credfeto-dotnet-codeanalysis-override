@@ -55,7 +55,7 @@ internal sealed class Section : INamedSection
         _ = this._properties.Remove(key);
     }
 
-    public void Comment(string key, IReadOnlyList<string> comments)
+    public void PropertyBlockComment(string key, IReadOnlyList<string> comments)
     {
         if (this._properties.TryGetValue(key: key, out PropertyValue? propertyValue))
         {
@@ -70,7 +70,24 @@ internal sealed class Section : INamedSection
         throw new PropertyNotFoundException();
     }
 
-    public IReadOnlyList<string> Comment(string key)
+    public string PropertyLineComment(string key)
+    {
+        return this._properties.TryGetValue(key: key, out PropertyValue? propertyValue)
+            ? propertyValue.LineComment
+            : throw new PropertyNotFoundException();
+    }
+
+    public void PropertyLineComment(string key, string comment)
+    {
+        if (!this._properties.TryGetValue(key: key, out PropertyValue? propertyValue))
+        {
+            throw new PropertyNotFoundException();
+        }
+
+        propertyValue.LineComment = comment;
+    }
+
+    public IReadOnlyList<string> PropertyBlockComment(string key)
     {
         return this._properties.TryGetValue(key: key, out PropertyValue? propertyValue)
             ? propertyValue.Comments
@@ -124,7 +141,7 @@ internal sealed class Section : INamedSection
 
         public string Value { get; set; }
 
-        public string LineComment { get; }
+        public string LineComment { get; set; }
 
         public IReadOnlyList<string> Comments { get; set; }
     }

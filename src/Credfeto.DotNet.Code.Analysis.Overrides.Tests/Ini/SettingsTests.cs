@@ -36,6 +36,36 @@ public sealed class SettingsTests : IntegrationTestBase
     }
 
     [Fact]
+    public void CreateAndAddSettingWithLineComment()
+    {
+        const string expected = @"Example = 42 # This is a line comment
+";
+
+        ISettings file = IniFile.Create();
+
+        file.Set(key: "Example", value: "42");
+        file.PropertyLineComment(key: "Example", comment: "This is a line comment");
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
+    public void CreateAndAddSettingUsingBuilderWithLineComment()
+    {
+        const string expected = @"Example = 42 # This is a line comment
+";
+
+        ISettings file = IniFile.Create()
+                                .CreateProperty()
+                                .WithKey("Example")
+                                .WithValue("42")
+                                .WithLineComment("This is a line comment")
+                                .Apply();
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
     public void CreateAndAddSettingWithComment()
     {
         const string expected = @"# Hello World!
@@ -45,7 +75,7 @@ Example = 42
         ISettings file = IniFile.Create();
 
         file.Set(key: "Example", value: "42");
-        file.Comment(key: "Example", ["Hello World!"]);
+        file.PropertyBlockComment(key: "Example", ["Hello World!"]);
 
         this.SaveAndCheck(file: file, expected: expected);
     }
@@ -63,7 +93,7 @@ Example = 42
         INamedSection section = file.CreateSection(sectionName: "Testing", []);
 
         section.Set(key: "Example", value: "42");
-        section.Comment(key: "Example", ["Hello World!"]);
+        section.PropertyBlockComment(key: "Example", ["Hello World!"]);
 
         this.SaveAndCheck(file: file, expected: expected);
     }
@@ -83,7 +113,7 @@ Example = 42
         section.SectionComment(["This is a section Comment"]);
 
         section.Set(key: "Example", value: "42");
-        section.Comment(key: "Example", ["Hello World!"]);
+        section.PropertyBlockComment(key: "Example", ["Hello World!"]);
 
         this.SaveAndCheck(file: file, expected: expected);
     }
