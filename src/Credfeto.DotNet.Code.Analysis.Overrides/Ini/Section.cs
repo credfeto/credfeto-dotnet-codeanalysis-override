@@ -10,10 +10,10 @@ using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Helpers;
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 
 [DebuggerDisplay("{Name} Order {Order}")]
-internal sealed class Section : ISection
+internal sealed class Section : INamedSection
 {
     private readonly Dictionary<string, PropertyValue> _properties;
-    private readonly List<string> _sectionComments;
+    private List<string> _sectionComments;
 
     public Section(int order, string? name, IReadOnlyList<string> sectionComments)
     {
@@ -55,7 +55,7 @@ internal sealed class Section : ISection
         _ = this._properties.Remove(key);
     }
 
-    public void Comment(string key, in IReadOnlyList<string> comments)
+    public void Comment(string key, IReadOnlyList<string> comments)
     {
         if (this._properties.TryGetValue(key: key, out PropertyValue? propertyValue))
         {
@@ -75,6 +75,19 @@ internal sealed class Section : ISection
         return this._properties.TryGetValue(key: key, out PropertyValue? propertyValue)
             ? propertyValue.Comments
             : throw new PropertyNotFoundException();
+    }
+
+    public IReadOnlyList<string> SectionComment()
+    {
+        return [..this._sectionComments];
+    }
+
+    public void SectionComment(IReadOnlyList<string> comments)
+    {
+        this._sectionComments =
+        [
+            ..comments.Select(Comments.Parse)
+        ];
     }
 
     public void AppendPropertyLine(string key, string value, string lineComment, IReadOnlyList<string> comments)
