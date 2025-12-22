@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -62,7 +63,7 @@ public static class IniFile
                 {
                     INamedSection namedSection => AddSectionProperty(namedSection: namedSection, key: key, value: value, lineComment: lineComment, context: context),
                     ISettings globalSettings => AddGlobalProperty(globalSettings: globalSettings, key: key, value: value, lineComment: lineComment, context: context),
-                    _ => throw new UnknownFormatException(line)
+                    _ => throw new UnreachableException("Unsupported section type")
                 };
 
                 continue;

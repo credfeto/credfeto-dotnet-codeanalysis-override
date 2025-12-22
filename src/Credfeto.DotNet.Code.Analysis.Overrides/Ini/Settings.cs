@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Exceptions;
@@ -77,9 +78,14 @@ internal sealed class Settings : ISettings
 
     public INamedSection CreateSection(string sectionName, in IReadOnlyList<string> comments)
     {
-        if (string.IsNullOrWhiteSpace(sectionName) || this.NamedSections.ContainsKey(sectionName))
+        if (Sections.IsInvalidSectionName(sectionName))
         {
-            throw new SectionAlreadyExistsException();
+            return Raise.InvalidSectionName();
+        }
+
+        if (this.NamedSections.ContainsKey(sectionName))
+        {
+            return Raise.SectionAlreadyExists();
         }
 
         Section section = new(this,
@@ -103,5 +109,20 @@ internal sealed class Settings : ISettings
         previousSection = true;
 
         return this.Global.Save(new());
+    }
+
+    private static class Raise
+    {
+        [DoesNotReturn]
+        public static INamedSection InvalidSectionName()
+        {
+            throw new InvalidSectionNameException();
+        }
+
+        [DoesNotReturn]
+        public static INamedSection SectionAlreadyExists()
+        {
+            throw new SectionAlreadyExistsException();
+        }
     }
 }
