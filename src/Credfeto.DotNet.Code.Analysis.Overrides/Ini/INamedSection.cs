@@ -7,4 +7,6 @@ public interface INamedSection : ISection
     IReadOnlyList<string> SectionComment();
 
     void SectionComment(IReadOnlyList<string> comments);
+
+    ISettings ToSettings();
 }
