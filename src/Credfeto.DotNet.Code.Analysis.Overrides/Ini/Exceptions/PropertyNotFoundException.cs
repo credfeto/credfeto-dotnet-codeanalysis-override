@@ -5,7 +5,7 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini.Exceptions;
 public sealed class PropertyNotFoundException : Exception
 {
     public PropertyNotFoundException()
-        : this("Section already exists")
+        : this("Property not found")
     {
     }
 
