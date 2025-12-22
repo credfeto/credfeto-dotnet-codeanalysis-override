@@ -58,7 +58,7 @@ public static class PropertyBuilder
             return this;
         }
 
-        public IPropertyBuilder<T> WithBlockComment(string line, IReadOnlyList<string> comments)
+        public IPropertyBuilder<T> WithBlockComment(IReadOnlyList<string> comments)
         {
             this._blockComment = comments;
 

@@ -9,7 +9,7 @@ public interface IPropertyBuilder<T>
 
     IPropertyBuilder<T> WithLineComment(string line);
 
-    IPropertyBuilder<T> WithBlockComment(string line, IReadOnlyList<string> comments);
+    IPropertyBuilder<T> WithBlockComment(IReadOnlyList<string> comments);
 
     T Apply();
 }

@@ -15,7 +15,7 @@ public static class IniFile
 {
     public static ISettings Create()
     {
-        return new Settings(new(order: 0, name: null, []), []);
+        return new Settings();
     }
 
     public static async ValueTask<ISettings> LoadAsync(string fileName, CancellationToken cancellationToken)
@@ -27,11 +27,9 @@ public static class IniFile
 
     private static ISettings Extract(in ReadOnlySpan<string> lines)
     {
-        int order = 0;
-        Section globalSection = new(order: order, name: null, []);
-        Dictionary<string, Section> namedSections = new(StringComparer.OrdinalIgnoreCase);
-
-        Section currentSection = globalSection;
+        Settings settings = new();
+        ISection globalSection = settings;
+        ISection currentSection = globalSection;
 
         ExtractContext context = new();
 
@@ -53,16 +51,19 @@ public static class IniFile
 
             if (IsSection(line: line, out string? newSection))
             {
-                currentSection = new(order: ++order, name: newSection, context.OnSection());
-
-                namedSections.Add(key: newSection, value: currentSection);
+                currentSection = settings.CreateSection(sectionName: newSection, [..context.OnSection()]);
 
                 continue;
             }
 
             if (IsProperty(line: line, out string? key, out string? value, out string? lineComment))
             {
-                currentSection.AppendPropertyLine(key: key, value: value, lineComment: lineComment, context.OnProperty());
+                currentSection = currentSection switch
+                {
+                    INamedSection namedSection => AddSectionProperty(namedSection: namedSection, key: key, value: value, lineComment: lineComment, context: context),
+                    ISettings globalSettings => AddGlobalProperty(globalSettings: globalSettings, key: key, value: value, lineComment: lineComment, context: context),
+                    _ => throw new UnknownFormatException(line)
+                };
 
                 continue;
             }
@@ -70,7 +71,37 @@ public static class IniFile
             throw new UnknownFormatException(line);
         }
 
-        return new Settings(global: globalSection, namedSections: namedSections);
+        return settings;
+    }
+
+    private static INamedSection AddSectionProperty(INamedSection namedSection, string key, string value, string lineComment, ExtractContext context)
+    {
+        return ConfigureProperty(namedSection.CreateProperty(key), value: value, lineComment: lineComment, context: context);
+    }
+
+    private static T ConfigureProperty<T>(IPropertyBuilder<T> builder, string value, string lineComment, ExtractContext context)
+        where T : ISection
+    {
+        builder = builder.WithValue(value);
+
+        if (!string.IsNullOrWhiteSpace(lineComment))
+        {
+            builder = builder.WithLineComment(lineComment);
+        }
+
+        IReadOnlyList<string> bc = context.OnProperty();
+
+        if (bc is not [])
+        {
+            builder = builder.WithBlockComment(bc);
+        }
+
+        return builder.Apply();
+    }
+
+    private static ISettings AddGlobalProperty(ISettings globalSettings, string key, string value, string lineComment, ExtractContext context)
+    {
+        return ConfigureProperty(globalSettings.CreateProperty(key), value: value, lineComment: lineComment, context: context);
     }
 
     private static bool IsProperty(string line, [NotNullWhen(true)] out string? key, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out string? lineComment)
