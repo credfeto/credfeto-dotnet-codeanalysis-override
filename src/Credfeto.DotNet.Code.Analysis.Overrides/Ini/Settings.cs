@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Exceptions;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Extensions;
+using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Helpers;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 
@@ -11,29 +12,16 @@ internal sealed class Settings : ISettings
 {
     private int _sectionOrder;
 
-    internal Settings(Section global, Dictionary<string, Section> namedSections)
+    internal Settings()
     {
-        this.NamedSections = namedSections;
-        this.Global = global;
-        this._sectionOrder = namedSections.Values.Count + 1;
+        this._sectionOrder = 0;
+        this.NamedSections = new Dictionary<string, Section>(StringComparer.Ordinal);
+        this.Global = new(this, order: this._sectionOrder, name: null, []);
     }
 
     private Section Global { get; }
 
     private IDictionary<string, Section> NamedSections { get; }
-
-    public INamedSection CreateSection(string sectionName, in ReadOnlySpan<string> comments)
-    {
-        if (string.IsNullOrWhiteSpace(sectionName) || this.NamedSections.ContainsKey(sectionName))
-        {
-            throw new SectionAlreadyExistsException();
-        }
-
-        Section section = new(order: ++this._sectionOrder, name: sectionName, [..comments]);
-        this.NamedSections.Add(key: sectionName, value: section);
-
-        return section;
-    }
 
     public INamedSection? GetSection(string sectionName)
     {
@@ -85,6 +73,24 @@ internal sealed class Settings : ISettings
     public void PropertyLineComment(string key, string comment)
     {
         this.Global.PropertyLineComment(key: key, comment: comment);
+    }
+
+    public INamedSection CreateSection(string sectionName, in IReadOnlyList<string> comments)
+    {
+        if (string.IsNullOrWhiteSpace(sectionName) || this.NamedSections.ContainsKey(sectionName))
+        {
+            throw new SectionAlreadyExistsException();
+        }
+
+        Section section = new(this,
+                              order: ++this._sectionOrder,
+                              name: sectionName,
+                              [
+                                  .. comments.Select(Comments.Parse)
+                              ]);
+        this.NamedSections.Add(key: sectionName, value: section);
+
+        return section;
     }
 
     private StringBuilder SaveGlobalSection(ref bool previousSection)

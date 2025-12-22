@@ -50,16 +50,49 @@ public sealed class SettingsTests : IntegrationTestBase
     }
 
     [Fact]
-    public void CreateAndAddSettingUsingBuilderWithLineComment()
+    public void CreateAndAddGlobalSettingUsingBuilderWithLineComment()
     {
         const string expected = @"Example = 42 # This is a line comment
+# This is a comment
+# And So is this
+Example42 = Test
 ";
 
         ISettings file = IniFile.Create()
                                 .CreateProperty("Example")
                                 .WithValue("42")
                                 .WithLineComment("This is a line comment")
+                                .Apply()
+                                .CreateProperty("Example42")
+                                .WithValue("Test")
+                                .WithBlockComment(["This is a comment", "And So is this"])
                                 .Apply();
+
+        this.SaveAndCheck(file: file, expected: expected);
+    }
+
+    [Fact]
+    public void CreateAndAddNamedSectionSettingsSettingUsingBuilderWithLineComment()
+    {
+        const string expected = @"# This is a section Comment
+[AAAA]
+Example = 42 # This is a line comment
+# This is a comment
+# And So is this
+Example42 = Test
+";
+
+        ISettings file = IniFile.Create()
+                                .CreateSection(sectionName: "AAAA", ["This is a section Comment"])
+                                .CreateProperty("Example")
+                                .WithValue("42")
+                                .WithLineComment("This is a line comment")
+                                .Apply()
+                                .CreateProperty("Example42")
+                                .WithValue("Test")
+                                .WithBlockComment(["This is a comment", "And So is this"])
+                                .Apply()
+                                .ToSettings();
 
         this.SaveAndCheck(file: file, expected: expected);
     }

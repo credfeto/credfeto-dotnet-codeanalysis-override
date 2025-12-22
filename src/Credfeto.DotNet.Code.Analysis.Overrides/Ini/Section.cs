@@ -13,10 +13,12 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 internal sealed class Section : INamedSection
 {
     private readonly Dictionary<string, PropertyValue> _properties;
+    private readonly ISettings _settings;
     private List<string> _sectionComments;
 
-    public Section(int order, string? name, IReadOnlyList<string> sectionComments)
+    public Section(ISettings settings, int order, string? name, IReadOnlyList<string> sectionComments)
     {
+        this._settings = settings;
         this._sectionComments = [..Comments.Clean(sectionComments)];
         this.Order = order;
         this.Name = name;
@@ -107,9 +109,9 @@ internal sealed class Section : INamedSection
         ];
     }
 
-    public void AppendPropertyLine(string key, string value, string lineComment, IReadOnlyList<string> comments)
+    public ISettings ToSettings()
     {
-        this._properties.Add(key: key, new(value: value, lineComment: lineComment, [..Comments.Clean(comments)]));
+        return this._settings;
     }
 
     public StringBuilder Save(StringBuilder stringBuilder)
