@@ -7,6 +7,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 
 ## [Unreleased]
 ### Added
+- Support for .globalconfig
 ### Fixed
 ### Changed
 - SDK - Updated DotNet SDK to 10.0.101
