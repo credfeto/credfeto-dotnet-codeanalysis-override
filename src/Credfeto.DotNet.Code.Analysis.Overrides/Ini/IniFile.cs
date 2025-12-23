@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Exceptions;
+using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Extensions;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Helpers;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini;
@@ -61,8 +62,16 @@ public static class IniFile
             {
                 currentSection = currentSection switch
                 {
-                    INamedSection namedSection => AddSectionProperty(namedSection: namedSection, key: key, value: value, lineComment: lineComment, context: context),
-                    ISettings globalSettings => AddGlobalProperty(globalSettings: globalSettings, key: key, value: value, lineComment: lineComment, context: context),
+                    INamedSection namedSection => namedSection.CreateProperty(key)
+                                                              .WithValue(value)
+                                                              .WithOptionalLineComment(lineComment)
+                                                              .WithOptionalBlockComment(context.OnProperty())
+                                                              .Apply(),
+                    ISettings globalSettings => globalSettings.CreateProperty(key)
+                                                              .WithValue(value)
+                                                              .WithOptionalLineComment(lineComment)
+                                                              .WithOptionalBlockComment(context.OnProperty())
+                                                              .Apply(),
                     _ => throw new UnreachableException("Unsupported section type")
                 };
 
@@ -73,36 +82,6 @@ public static class IniFile
         }
 
         return settings;
-    }
-
-    private static INamedSection AddSectionProperty(INamedSection namedSection, string key, string value, string lineComment, ExtractContext context)
-    {
-        return ConfigureProperty(namedSection.CreateProperty(key), value: value, lineComment: lineComment, context: context);
-    }
-
-    private static T ConfigureProperty<T>(IPropertyBuilder<T> builder, string value, string lineComment, ExtractContext context)
-        where T : ISection
-    {
-        builder = builder.WithValue(value);
-
-        if (!string.IsNullOrWhiteSpace(lineComment))
-        {
-            builder = builder.WithLineComment(lineComment);
-        }
-
-        IReadOnlyList<string> bc = context.OnProperty();
-
-        if (bc is not [])
-        {
-            builder = builder.WithBlockComment(bc);
-        }
-
-        return builder.Apply();
-    }
-
-    private static ISettings AddGlobalProperty(ISettings globalSettings, string key, string value, string lineComment, ExtractContext context)
-    {
-        return ConfigureProperty(globalSettings.CreateProperty(key), value: value, lineComment: lineComment, context: context);
     }
 
     private static bool IsProperty(string line, [NotNullWhen(true)] out string? key, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out string? lineComment)
