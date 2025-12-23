@@ -89,7 +89,4 @@
     <PackageReference Include="ToStringWithoutOverrideAnalyzer" Version="0.6.0" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="xunit.analyzers" Version="1.25.0" PrivateAssets="All" ExcludeAssets="runtime"/>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Helpers\"/>
-  </ItemGroup>
 </Project>
