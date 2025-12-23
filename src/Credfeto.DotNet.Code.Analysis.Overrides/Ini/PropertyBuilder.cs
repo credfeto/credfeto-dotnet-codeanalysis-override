@@ -32,10 +32,10 @@ public static class PropertyBuilder
 
         if (section.Get(key) is null)
         {
-            return Raise.SectionPropertyAlreadyExists();
+            return new TypedPropertyBuilder<INamedSection>(section: section, key: key);
         }
 
-        return new TypedPropertyBuilder<INamedSection>(section: section, key: key);
+        return Raise.SectionPropertyAlreadyExists();
     }
 
     private static class Raise
@@ -66,43 +66,43 @@ public static class PropertyBuilder
     }
 
     [DebuggerDisplay("{_key}: {_value}")]
-    private sealed class TypedPropertyBuilder<T> : IPropertyBuilder<T>
-        where T : ISection
+    private sealed class TypedPropertyBuilder<TSection> : IPropertyBuilder<TSection>
+        where TSection : ISection
     {
         private readonly string _key;
-        private readonly T _section;
+        private readonly TSection _section;
         private IReadOnlyList<string>? _blockComment;
         private string? _lineComment;
         private string? _value;
 
-        public TypedPropertyBuilder(T section, string key)
+        public TypedPropertyBuilder(TSection section, string key)
         {
             this._section = section;
             this._key = key;
         }
 
-        public IPropertyBuilder<T> WithValue(string value)
+        public IPropertyBuilder<TSection> WithValue(string value)
         {
             this._value = value;
 
             return this;
         }
 
-        public IPropertyBuilder<T> WithLineComment(string line)
+        public IPropertyBuilder<TSection> WithLineComment(string line)
         {
             this._lineComment = line;
 
             return this;
         }
 
-        public IPropertyBuilder<T> WithBlockComment(IReadOnlyList<string> comments)
+        public IPropertyBuilder<TSection> WithBlockComment(IReadOnlyList<string> comments)
         {
             this._blockComment = comments;
 
             return this;
         }
 
-        public T Apply()
+        public TSection Apply()
         {
             if (string.IsNullOrWhiteSpace(this._value))
             {
@@ -130,13 +130,13 @@ public static class PropertyBuilder
         }
 
         [DoesNotReturn]
-        private static T InvalidPropertyValue()
+        private static TSection InvalidPropertyValue()
         {
             throw new InvalidPropertyValueException();
         }
 
         [DoesNotReturn]
-        private static T DuplicateProperty()
+        private static TSection DuplicateProperty()
         {
             throw new DuplicatePropertyException();
         }
