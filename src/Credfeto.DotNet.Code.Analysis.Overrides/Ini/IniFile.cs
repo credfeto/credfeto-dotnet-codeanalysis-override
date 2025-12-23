@@ -27,6 +27,13 @@ public static class IniFile
         return Extract(lines);
     }
 
+    public static async ValueTask SaveAsync(string fileName, ISettings settings, CancellationToken cancellationToken)
+    {
+        string content = settings.Save();
+
+        await File.WriteAllTextAsync(path: fileName, contents: content, cancellationToken: cancellationToken);
+    }
+
     private static ISettings Extract(in ReadOnlySpan<string> lines)
     {
         Settings settings = new();
