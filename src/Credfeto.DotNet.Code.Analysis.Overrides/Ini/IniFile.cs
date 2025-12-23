@@ -36,59 +36,75 @@ public static class IniFile
 
     private static ISettings Extract(in ReadOnlySpan<string> lines)
     {
-        Settings settings = new();
-        ISection globalSection = settings;
-        ISection currentSection = globalSection;
+        long lineNumber = 0;
 
-        ExtractContext context = new();
-
-        foreach (string line in lines)
+        try
         {
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                context.OnBlankLine();
+            Settings settings = new();
+            ISection globalSection = settings;
+            ISection currentSection = globalSection;
 
-                continue;
+            ExtractContext context = new();
+
+            foreach (string line in lines)
+            {
+                ++lineNumber;
+
+                currentSection = ProcessSettingsLine(line: line, context: context, currentSection: currentSection, settings: settings);
             }
 
-            if (IsComment(line: line, out string? comment))
-            {
-                context.OnComment(comment);
+            return settings;
+        }
+        catch (Exception exception)
+        {
+            throw new InvalidSettingsException($"Line {lineNumber}: {exception.Message}", innerException: exception);
+        }
+    }
 
-                continue;
-            }
+    private static ISection ProcessSettingsLine(string line, ExtractContext context, ISection currentSection, Settings settings)
+    {
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            context.OnBlankLine();
 
-            if (IsSection(line: line, out string? newSection))
-            {
-                currentSection = settings.CreateSection(sectionName: newSection, [..context.OnSection()]);
-
-                continue;
-            }
-
-            if (IsProperty(line: line, out string? key, out string? value, out string? lineComment))
-            {
-                currentSection = currentSection switch
-                {
-                    INamedSection namedSection => namedSection.CreateProperty(key)
-                                                              .WithValue(value)
-                                                              .WithOptionalLineComment(lineComment)
-                                                              .WithOptionalBlockComment(context.OnProperty())
-                                                              .Apply(),
-                    ISettings globalSettings => globalSettings.CreateProperty(key)
-                                                              .WithValue(value)
-                                                              .WithOptionalLineComment(lineComment)
-                                                              .WithOptionalBlockComment(context.OnProperty())
-                                                              .Apply(),
-                    _ => throw new UnreachableException("Unsupported section type")
-                };
-
-                continue;
-            }
-
-            throw new UnknownFormatException(line);
+            return currentSection;
         }
 
-        return settings;
+        if (IsComment(line: line, out string? comment))
+        {
+            context.OnComment(comment);
+
+            return currentSection;
+        }
+
+        if (IsSection(line: line, out string? newSection))
+        {
+            currentSection = settings.CreateSection(sectionName: newSection, [..context.OnSection()]);
+
+            return currentSection;
+        }
+
+        if (IsProperty(line: line, out string? key, out string? value, out string? lineComment))
+        {
+            currentSection = currentSection switch
+            {
+                INamedSection namedSection => namedSection.CreateProperty(key)
+                                                          .WithValue(value)
+                                                          .WithOptionalLineComment(lineComment)
+                                                          .WithOptionalBlockComment(context.OnProperty())
+                                                          .Apply(),
+                ISettings globalSettings => globalSettings.CreateProperty(key)
+                                                          .WithValue(value)
+                                                          .WithOptionalLineComment(lineComment)
+                                                          .WithOptionalBlockComment(context.OnProperty())
+                                                          .Apply(),
+                _ => throw new UnreachableException("Unsupported section type")
+            };
+
+            return currentSection;
+        }
+
+        throw new UnknownFormatException(line);
     }
 
     private static bool IsProperty(string line, [NotNullWhen(true)] out string? key, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out string? lineComment)
