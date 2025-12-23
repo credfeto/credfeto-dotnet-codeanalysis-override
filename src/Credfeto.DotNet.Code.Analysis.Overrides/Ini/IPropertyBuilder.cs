@@ -2,14 +2,14 @@ using System.Collections.Generic;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 
-public interface IPropertyBuilder<T>
-    where T : ISection
+public interface IPropertyBuilder<out TSection>
+    where TSection : ISection
 {
-    IPropertyBuilder<T> WithValue(string value);
+    IPropertyBuilder<TSection> WithValue(string value);
 
-    IPropertyBuilder<T> WithLineComment(string line);
+    IPropertyBuilder<TSection> WithLineComment(string line);
 
-    IPropertyBuilder<T> WithBlockComment(IReadOnlyList<string> comments);
+    IPropertyBuilder<TSection> WithBlockComment(IReadOnlyList<string> comments);
 
-    T Apply();
+    TSection Apply();
 }
