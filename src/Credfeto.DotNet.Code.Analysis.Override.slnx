@@ -10,6 +10,7 @@
       <File Path="release.rule-settings.json"/>
   </Folder>
   <Project Path="Credfeto.DotNet.Code.Analysis.Overrides.Cmd/Credfeto.DotNet.Code.Analysis.Overrides.Cmd.csproj" />
+  <Project Path="Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests/Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests.csproj" Type="C#"/>
     <Project Path="Credfeto.DotNet.Code.Analysis.Overrides.Tests\Credfeto.DotNet.Code.Analysis.Overrides.Tests.csproj"
              Type="C#"/>
   <Project Path="Credfeto.DotNet.Code.Analysis.Overrides/Credfeto.DotNet.Code.Analysis.Overrides.csproj" />
