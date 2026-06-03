@@ -9,6 +9,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Security
 ### Added
 - Unit tests for Credfeto.DotNet.Code.Analysis.Overrides.Cmd
+- Increased code coverage to 100% for Credfeto.DotNet.Code.Analysis.Overrides
 ### Fixed
 ### Changed
 - SDK - Updated DotNet SDK to 10.0.300
