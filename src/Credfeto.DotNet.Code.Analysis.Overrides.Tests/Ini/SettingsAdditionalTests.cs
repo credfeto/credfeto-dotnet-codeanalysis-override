@@ -89,4 +89,16 @@ public sealed class SettingsAdditionalTests : IntegrationTestBase
 
         Assert.Throws<PropertyNotFoundException>(() => settings.PropertyBlockComment("NonExistent"));
     }
+
+    [Fact]
+    public void PropertyLineCommentGetFromGlobalSectionReturnsSetComment()
+    {
+        ISettings settings = IniFile.Create();
+        settings.Set(key: "GlobalKey", value: "GlobalValue");
+        settings.PropertyLineComment(key: "GlobalKey", comment: "My line comment");
+
+        string comment = settings.PropertyLineComment("GlobalKey");
+
+        Assert.Equal(expected: "My line comment", actual: comment);
+    }
 }
