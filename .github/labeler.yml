@@ -11,13 +11,13 @@
 "Config Change":
  - any: [ 'src/**/*.json', '!src/global.json' ]
 "credfeto-dotnet-code-analysis-overrides":
- - any: [ 'src/$Credfeto.DotNet.Code.Analysis.Overrides/**/*' ]
+ - any: [ 'src/Credfeto.DotNet.Code.Analysis.Overrides/**/*' ]
 "credfeto-dotnet-code-analysis-overrides-cmd":
- - any: [ 'src/$Credfeto.DotNet.Code.Analysis.Overrides.Cmd/**/*' ]
+ - any: [ 'src/Credfeto.DotNet.Code.Analysis.Overrides.Cmd/**/*' ]
 "credfeto-dotnet-code-analysis-overrides-cmd-tests":
- - any: [ 'src/$Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests/**/*' ]
+ - any: [ 'src/Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests/**/*' ]
 "credfeto-dotnet-code-analysis-overrides-tests":
- - any: [ 'src/$Credfeto.DotNet.Code.Analysis.Overrides.Tests/**/*' ]
+ - any: [ 'src/Credfeto.DotNet.Code.Analysis.Overrides.Tests/**/*' ]
 "dotnet":
  - any: [ 'src/**/*.csproj' ]
 "Editorconfig":
