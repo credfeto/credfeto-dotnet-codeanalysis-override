@@ -11,6 +11,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Unit tests for Credfeto.DotNet.Code.Analysis.Overrides.Cmd
 - Increased code coverage to 100% for Credfeto.DotNet.Code.Analysis.Overrides
 ### Fixed
+- Fixed CI workflows that use pull_request_target to inline local composite action logic rather than referencing .github/actions paths which cannot be resolved before checkout
 ### Changed
 - SDK - Updated DotNet SDK to 10.0.300
 ### Deprecated
