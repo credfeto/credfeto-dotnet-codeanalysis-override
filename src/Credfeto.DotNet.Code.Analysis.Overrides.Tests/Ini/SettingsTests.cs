@@ -8,9 +8,7 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Tests.Ini;
 public sealed class SettingsTests : IntegrationTestBase
 {
     public SettingsTests(ITestOutputHelper output)
-        : base(output)
-    {
-    }
+        : base(output) { }
 
     [Fact]
     public void CreateEmpty()
@@ -25,7 +23,8 @@ public sealed class SettingsTests : IntegrationTestBase
     [Fact]
     public void CreateAndAddSetting()
     {
-        const string expected = @"Example = 42
+        const string expected =
+            @"Example = 42
 ";
 
         ISettings file = IniFile.Create();
@@ -38,7 +37,8 @@ public sealed class SettingsTests : IntegrationTestBase
     [Fact]
     public void CreateAndAddSettingWithLineComment()
     {
-        const string expected = @"Example = 42 # This is a line comment
+        const string expected =
+            @"Example = 42 # This is a line comment
 ";
 
         ISettings file = IniFile.Create();
@@ -52,21 +52,23 @@ public sealed class SettingsTests : IntegrationTestBase
     [Fact]
     public void CreateAndAddGlobalSettingUsingBuilderWithLineComment()
     {
-        const string expected = @"Example = 42 # This is a line comment
+        const string expected =
+            @"Example = 42 # This is a line comment
 # This is a comment
 # And So is this
 Example42 = Test
 ";
 
-        ISettings file = IniFile.Create()
-                                .CreateProperty("Example")
-                                .WithValue("42")
-                                .WithLineComment("This is a line comment")
-                                .Apply()
-                                .CreateProperty("Example42")
-                                .WithValue("Test")
-                                .WithBlockComment(["This is a comment", "And So is this"])
-                                .Apply();
+        ISettings file = IniFile
+            .Create()
+            .CreateProperty("Example")
+            .WithValue("42")
+            .WithLineComment("This is a line comment")
+            .Apply()
+            .CreateProperty("Example42")
+            .WithValue("Test")
+            .WithBlockComment(["This is a comment", "And So is this"])
+            .Apply();
 
         this.SaveAndCheck(file: file, expected: expected);
     }
@@ -74,7 +76,8 @@ Example42 = Test
     [Fact]
     public void CreateAndAddNamedSectionSettingsSettingUsingBuilderWithLineComment()
     {
-        const string expected = @"# This is a section Comment
+        const string expected =
+            @"# This is a section Comment
 [AAAA]
 Example = 42 # This is a line comment
 # This is a comment
@@ -82,17 +85,18 @@ Example = 42 # This is a line comment
 Example42 = Test
 ";
 
-        ISettings file = IniFile.Create()
-                                .CreateSection(sectionName: "AAAA", ["This is a section Comment"])
-                                .CreateProperty("Example")
-                                .WithValue("42")
-                                .WithLineComment("This is a line comment")
-                                .Apply()
-                                .CreateProperty("Example42")
-                                .WithValue("Test")
-                                .WithBlockComment(["This is a comment", "And So is this"])
-                                .Apply()
-                                .ToSettings();
+        ISettings file = IniFile
+            .Create()
+            .CreateSection(sectionName: "AAAA", ["This is a section Comment"])
+            .CreateProperty("Example")
+            .WithValue("42")
+            .WithLineComment("This is a line comment")
+            .Apply()
+            .CreateProperty("Example42")
+            .WithValue("Test")
+            .WithBlockComment(["This is a comment", "And So is this"])
+            .Apply()
+            .ToSettings();
 
         this.SaveAndCheck(file: file, expected: expected);
     }
@@ -100,7 +104,8 @@ Example42 = Test
     [Fact]
     public void CreateAndAddSettingWithComment()
     {
-        const string expected = @"# Hello World!
+        const string expected =
+            @"# Hello World!
 Example = 42
 ";
 
@@ -115,7 +120,8 @@ Example = 42
     [Fact]
     public void CreateAndAddNamedSectionWithPropertyComment()
     {
-        const string expected = @"[Testing]
+        const string expected =
+            @"[Testing]
 # Hello World!
 Example = 42
 ";
@@ -133,7 +139,8 @@ Example = 42
     [Fact]
     public void CreateAndAddNamedSectionWithSectionAndPropertyComments()
     {
-        const string expected = @"# This is a section Comment
+        const string expected =
+            @"# This is a section Comment
 [Testing]
 # Hello World!
 Example = 42
@@ -164,9 +171,11 @@ Example = 42
     [Fact]
     public void LoadGlobalNoComments()
     {
-        const string original = @"global = true
+        const string original =
+            @"global = true
 ";
-        const string expected = @"global = true
+        const string expected =
+            @"global = true
 ";
         ISettings file = IniFile.Load(original);
 
@@ -176,9 +185,11 @@ Example = 42
     [Fact]
     public void LoadGlobalWithLineComment()
     {
-        const string original = @"global = true#This is a root config
+        const string original =
+            @"global = true#This is a root config
 ";
-        const string expected = @"global = true # This is a root config
+        const string expected =
+            @"global = true # This is a root config
 ";
         ISettings file = IniFile.Load(original);
 
@@ -188,13 +199,15 @@ Example = 42
     [Fact]
     public void LoadGlobalWithLineCommentAndCommentsAbove()
     {
-        const string original = @"#This is a block comment
+        const string original =
+            @"#This is a block comment
 #Line 2
 
 #Line 3
 global = true#This is a root config
 ";
-        const string expected = @"# This is a block comment
+        const string expected =
+            @"# This is a block comment
 # Line 2
 #
 # Line 3
@@ -208,9 +221,11 @@ global = true # This is a root config
     [Fact]
     public void LoadJustGlobalNoCommentsStandardisesSpacing()
     {
-        const string original = @"global=true
+        const string original =
+            @"global=true
 ";
-        const string expected = @"global = true
+        const string expected =
+            @"global = true
 ";
         ISettings file = IniFile.Load(original);
 
@@ -220,10 +235,12 @@ global = true # This is a root config
     [Fact]
     public void LoadNamedSectionNoComments()
     {
-        const string original = @"[Named]
+        const string original =
+            @"[Named]
 test = true
 ";
-        const string expected = @"[Named]
+        const string expected =
+            @"[Named]
 test = true
 ";
         ISettings file = IniFile.Load(original);
@@ -234,7 +251,8 @@ test = true
     [Fact]
     public void LoadNamedSectionWithComments()
     {
-        const string original = @"# Comment Line 1
+        const string original =
+            @"# Comment Line 1
 #Comment Line 2
 
 
@@ -243,7 +261,8 @@ test = true
 [Named]
 test = true
 ";
-        const string expected = @"# Comment Line 1
+        const string expected =
+            @"# Comment Line 1
 # Comment Line 2
 #
 # Comment Line 3
@@ -258,7 +277,8 @@ test = true
     [Fact]
     public void RoundTripMultipleSectionsComments()
     {
-        const string original = @"# Editor configuration, see http://editorconfig.org
+        const string original =
+            @"# Editor configuration, see http://editorconfig.org
 root = true
 
 [*.sol]
@@ -281,7 +301,8 @@ max_line_length=200
 indent_size=2
 end_of_line=crlf
 ";
-        const string expected = @"# Editor configuration, see http://editorconfig.org
+        const string expected =
+            @"# Editor configuration, see http://editorconfig.org
 root = true
 
 [*.sol]
@@ -313,6 +334,9 @@ end_of_line = crlf
     {
         string updated = file.Save();
         this.Output.WriteLine(updated);
-        Assert.Equal(expected.Replace(oldValue: Environment.NewLine, newValue: "\n", comparisonType: StringComparison.Ordinal), actual: updated);
+        Assert.Equal(
+            expected.Replace(oldValue: Environment.NewLine, newValue: "\n", comparisonType: StringComparison.Ordinal),
+            actual: updated
+        );
     }
 }

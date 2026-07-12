@@ -5,17 +5,11 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini.Exceptions;
 public sealed class InvalidSectionNameException : Exception
 {
     public InvalidSectionNameException()
-        : this("Invalid section name")
-    {
-    }
+        : this("Invalid section name") { }
 
     public InvalidSectionNameException(string message)
-        : base(message)
-    {
-    }
+        : base(message) { }
 
     public InvalidSectionNameException(string message, Exception innerException)
-        : base(message: message, innerException: innerException)
-    {
-    }
+        : base(message: message, innerException: innerException) { }
 }

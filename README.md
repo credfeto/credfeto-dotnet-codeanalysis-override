@@ -1,4 +1,5 @@
 # credfeto-dotnet-codeanalysis-override
+
 Dotnet code analysis override tool
 
 dotnet tool to allow configured overrides for CodeAnalysis.ruleset files allowing a lower set of analysis rules for development and pre-release builds compared to release builds.  This allows developers to work with rules like being able to add TODO's and comment out code while developing, but prohibits them in builds in pull requests and release builds.
@@ -62,8 +63,8 @@ dotnet tool install Credfeto.DotNet.Code.Analysis.Overrides.Cmd
 
 ## Build Status
 
-| Branch  | Status                                                                                                                                                                                                                                |
-|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Branch  | Status                                                                                                                                                                                                                                                                          |
+|---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | main    | [![Build: Pre-Release](https://github.com/credfeto/credfeto-dotnet-codeanalysis-override/actions/workflows/build-and-publish-pre-release.yml/badge.svg)](https://github.com/credfeto/credfeto-dotnet-codeanalysis-override/actions/workflows/build-and-publish-pre-release.yml) |
 | release | [![Build: Release](https://github.com/credfeto/credfeto-dotnet-codeanalysis-override/actions/workflows/build-and-publish-release.yml/badge.svg)](https://github.com/credfeto/credfeto-dotnet-codeanalysis-override/actions/workflows/build-and-publish-release.yml)             |
 
