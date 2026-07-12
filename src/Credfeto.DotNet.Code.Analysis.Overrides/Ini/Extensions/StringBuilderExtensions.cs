@@ -39,9 +39,7 @@ internal static class StringBuilderExtensions
             stringBuilder = stringBuilder.AppendComment(comment: comment);
         }
 
-        return lastLineWasBlank
-            ? stringBuilder.AppendLine("#")
-            : stringBuilder;
+        return lastLineWasBlank ? stringBuilder.AppendLine("#") : stringBuilder;
     }
 
     private static StringBuilder AppendComment(this StringBuilder stringBuilder, string comment)
@@ -49,7 +47,12 @@ internal static class StringBuilderExtensions
         return stringBuilder.AppendLine($"#{comment.TrimEnd()}");
     }
 
-    public static StringBuilder AppendProperty(this StringBuilder stringBuilder, string key, string value, string lineComment)
+    public static StringBuilder AppendProperty(
+        this StringBuilder stringBuilder,
+        string key,
+        string value,
+        string lineComment
+    )
     {
         return string.IsNullOrWhiteSpace(lineComment)
             ? stringBuilder.AppendLine($"{key} = {value}")
