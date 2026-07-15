@@ -67,11 +67,6 @@
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-8g4q-xg66-9fp4" />
   </ItemGroup>
   <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
-      <_Parameter1>Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Credfeto.DotNet.Code.Analysis.Overrides\Credfeto.DotNet.Code.Analysis.Overrides.csproj" />
   </ItemGroup>
   <ItemGroup>

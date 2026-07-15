@@ -11,6 +11,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Unit tests for Credfeto.DotNet.Code.Analysis.Overrides.Cmd
 - Increased code coverage to 100% for Credfeto.DotNet.Code.Analysis.Overrides
 ### Fixed
+- Fixed InternalsVisibleTo declared via csproj AssemblyAttribute item, which violated the MustNotUseAssemblyAttributeItems build check
 ### Changed
 - SDK - Updated DotNet SDK to 10.0.302
 ### Deprecated
