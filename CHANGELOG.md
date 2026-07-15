@@ -12,7 +12,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Increased code coverage to 100% for Credfeto.DotNet.Code.Analysis.Overrides
 ### Fixed
 ### Changed
-- SDK - Updated DotNet SDK to 10.0.301
+- SDK - Updated DotNet SDK to 10.0.302
 ### Deprecated
 ### Removed
 ### Deployment Changes
