@@ -1,13 +1,14 @@
 using System;
 using System.Xml;
 using Credfeto.DotNet.Code.Analysis.Overrides.LoggingExtensions;
+using Credfeto.DotNet.Code.Analysis.Overrides.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides;
 
 public static class XmlUpdater
 {
-    public static bool ChangeValue(
+    public static RuleChangeOutcome ChangeValue(
         this XmlDocument xmlRuleSet,
         string ruleSet,
         string rule,
@@ -23,7 +24,7 @@ public static class XmlUpdater
         {
             logger.RuleNotPresent(ruleSet: ruleSet, rule: rule, name: name);
 
-            return false;
+            return RuleChangeOutcome.RuleNotPresent;
         }
 
         string existingValue = element.GetAttribute("Action");
@@ -32,7 +33,7 @@ public static class XmlUpdater
         {
             logger.RuleNotChangedAsIdentical(ruleSet: ruleSet, rule: rule, name: name, setting: existingValue);
 
-            return false;
+            return RuleChangeOutcome.Unchanged;
         }
 
         element.SetAttribute(name: "Action", value: newState);
@@ -44,6 +45,6 @@ public static class XmlUpdater
             newSetting: newState
         );
 
-        return true;
+        return RuleChangeOutcome.Changed;
     }
 }

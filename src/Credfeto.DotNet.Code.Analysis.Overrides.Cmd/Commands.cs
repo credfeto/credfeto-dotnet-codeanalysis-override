@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Cocona;
+using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.LoggingExtensions;
 using Credfeto.DotNet.Code.Analysis.Overrides.Helpers;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini;
@@ -39,7 +40,7 @@ internal sealed class Commands
 
     [Command("ruleset", Description = "Update codeanalysiis.ruleset")]
     [SuppressMessage(category: "ReSharper", checkId: "UnusedMember.Global", Justification = "Used by Cocona")]
-    public async Task UpdateRulesetAsync(
+    public async Task<int> UpdateRulesetAsync(
         [Option(name: "ruleset", ['r'], Description = "ruleset file to change")] string rulesetFileName,
         [Option(name: "changes", ['c'], Description = "file of changes to apply")] string changesFileName
     )
@@ -50,29 +51,33 @@ internal sealed class Commands
         {
             this._logger.NoChangesInFile(changesFileName);
 
-            return;
+            return ExitCodes.Success;
         }
 
         bool changed = false;
+        bool ruleNotPresent = false;
         XmlDocument ruleSet = await RuleSet.LoadAsync(rulesetFileName);
 
         foreach (RuleChange change in changes)
         {
             this._logger.ChangingState(change.RuleSet, rule: change.Rule, change.State);
-            bool hasChanged = ruleSet.ChangeValue(
+            RuleChangeOutcome outcome = ruleSet.ChangeValue(
                 ruleSet: change.RuleSet,
                 rule: change.Rule,
                 name: change.Description,
                 newState: change.State,
                 logger: this._logger
             );
-            changed |= hasChanged;
+            changed |= outcome == RuleChangeOutcome.Changed;
+            ruleNotPresent |= outcome == RuleChangeOutcome.RuleNotPresent;
         }
 
         if (changed)
         {
             await RuleSet.SaveAsync(rulesetFileName, ruleSet);
         }
+
+        return ruleNotPresent ? ExitCodes.Error : ExitCodes.Success;
     }
 
     [Command("globalconfig", Description = "Update .globalconfig")]
