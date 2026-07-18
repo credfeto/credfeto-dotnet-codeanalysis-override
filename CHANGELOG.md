@@ -12,6 +12,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Increased code coverage to 100% for Credfeto.DotNet.Code.Analysis.Overrides
 ### Fixed
 - Fixed InternalsVisibleTo declared via csproj AssemblyAttribute item, which violated the MustNotUseAssemblyAttributeItems build check
+- ruleset command now exits non-zero when a changes-file rule is missing from the target ruleset
 ### Changed
 - SDK - Updated DotNet SDK to 10.0.302
 ### Deprecated
