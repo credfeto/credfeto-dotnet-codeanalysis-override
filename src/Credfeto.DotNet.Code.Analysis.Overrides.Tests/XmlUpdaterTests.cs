@@ -1,5 +1,6 @@
 ﻿using System.Xml;
 using Credfeto.DotNet.Code.Analysis.Overrides;
+using Credfeto.DotNet.Code.Analysis.Overrides.Models;
 using FunFair.Test.Common;
 using Microsoft.Extensions.Logging;
 using Xunit;
@@ -39,11 +40,11 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
     }
 
     [Fact]
-    public void ChangeValueReturnsFalseWhenRuleNotPresent()
+    public void ChangeValueReturnsRuleNotPresentWhenRuleNotPresent()
     {
         XmlDocument doc = CreateEmptyXmlDocument();
 
-        bool changed = doc.ChangeValue(
+        RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
@@ -51,15 +52,15 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
             logger: this._logger
         );
 
-        Assert.False(changed, "Should return false when rule is not present");
+        Assert.Equal(RuleChangeOutcome.RuleNotPresent, outcome);
     }
 
     [Fact]
-    public void ChangeValueReturnsFalseWhenExistingActionIsIdentical()
+    public void ChangeValueReturnsUnchangedWhenExistingActionIsIdentical()
     {
         XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "error");
 
-        bool changed = doc.ChangeValue(
+        RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
@@ -67,15 +68,15 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
             logger: this._logger
         );
 
-        Assert.False(changed, "Should return false when existing action is identical");
+        Assert.Equal(RuleChangeOutcome.Unchanged, outcome);
     }
 
     [Fact]
-    public void ChangeValueReturnsTrueWhenActionDiffers()
+    public void ChangeValueReturnsChangedWhenActionDiffers()
     {
         XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "none");
 
-        bool changed = doc.ChangeValue(
+        RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
@@ -83,7 +84,7 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
             logger: this._logger
         );
 
-        Assert.True(changed, "Should return true when action differs");
+        Assert.Equal(RuleChangeOutcome.Changed, outcome);
     }
 
     [Fact]
@@ -91,7 +92,7 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
     {
         XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "none");
 
-        bool changed = doc.ChangeValue(
+        RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
@@ -99,7 +100,7 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
             logger: this._logger
         );
 
-        Assert.True(changed, "Should return true when action is updated");
+        Assert.Equal(RuleChangeOutcome.Changed, outcome);
 
         XmlElement? element =
             doc.SelectSingleNode("//RuleSet/Rules[@AnalyzerId='MyAnalyzer']/Rule[@Id='MA0001']") as XmlElement;
@@ -108,11 +109,11 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
     }
 
     [Fact]
-    public void ChangeValueDoesNotUpdateWhenRuleSetDoesNotMatch()
+    public void ChangeValueReturnsRuleNotPresentWhenRuleSetDoesNotMatch()
     {
         XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "OtherAnalyzer", rule: "MA0001", action: "none");
 
-        bool changed = doc.ChangeValue(
+        RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
@@ -120,15 +121,15 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
             logger: this._logger
         );
 
-        Assert.False(changed, "Should return false when ruleSet does not match");
+        Assert.Equal(RuleChangeOutcome.RuleNotPresent, outcome);
     }
 
     [Fact]
-    public void ChangeValueDoesNotUpdateWhenRuleIdDoesNotMatch()
+    public void ChangeValueReturnsRuleNotPresentWhenRuleIdDoesNotMatch()
     {
         XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA9999", action: "none");
 
-        bool changed = doc.ChangeValue(
+        RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
@@ -136,15 +137,15 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
             logger: this._logger
         );
 
-        Assert.False(changed, "Should return false when rule ID does not match");
+        Assert.Equal(RuleChangeOutcome.RuleNotPresent, outcome);
     }
 
     [Fact]
-    public void ChangeValueReturnsTrueAndSetsNewStateForDifferentAction()
+    public void ChangeValueReturnsChangedAndSetsNewStateForDifferentAction()
     {
         XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "AnalyzerX", rule: "AX001", action: "suggestion");
 
-        bool changed = doc.ChangeValue(
+        RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "AnalyzerX",
             rule: "AX001",
             name: "Rule AX001",
@@ -152,7 +153,7 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
             logger: this._logger
         );
 
-        Assert.True(changed, "Should return true when action is changed");
+        Assert.Equal(RuleChangeOutcome.Changed, outcome);
 
         XmlElement? element =
             doc.SelectSingleNode("//RuleSet/Rules[@AnalyzerId='AnalyzerX']/Rule[@Id='AX001']") as XmlElement;

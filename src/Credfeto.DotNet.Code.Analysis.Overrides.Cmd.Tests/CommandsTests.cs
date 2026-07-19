@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using FunFair.Test.Common;
 using Xunit;
 
@@ -22,7 +23,12 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateRulesetAsync(rulesetFileName: "non-existent.ruleset", changesFileName: changesFile);
+            int exitCode = await commands.UpdateRulesetAsync(
+                rulesetFileName: "non-existent.ruleset",
+                changesFileName: changesFile
+            );
+
+            Assert.Equal(ExitCodes.Success, exitCode);
         }
         finally
         {
@@ -31,7 +37,7 @@ public sealed class CommandsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task UpdateRulesetAsync_WithChangesNoMatchingRule_DoesNotSave()
+    public async Task UpdateRulesetAsync_WithChangesNoMatchingRule_DoesNotSaveAndReturnsErrorExitCode()
     {
         Commands commands = new(this.GetTypedLogger<Commands>());
         CancellationToken cancellationToken = this.CancellationToken();
@@ -46,7 +52,12 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateRulesetAsync(rulesetFileName: rulesetFile, changesFileName: changesFile);
+            int exitCode = await commands.UpdateRulesetAsync(
+                rulesetFileName: rulesetFile,
+                changesFileName: changesFile
+            );
+
+            Assert.Equal(ExitCodes.Error, exitCode);
         }
         finally
         {
@@ -56,7 +67,7 @@ public sealed class CommandsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task UpdateRulesetAsync_WithChangesMatchingRule_SavesUpdatedRuleset()
+    public async Task UpdateRulesetAsync_WithChangesMatchingRule_SavesUpdatedRulesetAndReturnsSuccessExitCode()
     {
         Commands commands = new(this.GetTypedLogger<Commands>());
         CancellationToken cancellationToken = this.CancellationToken();
@@ -71,7 +82,50 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateRulesetAsync(rulesetFileName: rulesetFile, changesFileName: changesFile);
+            int exitCode = await commands.UpdateRulesetAsync(
+                rulesetFileName: rulesetFile,
+                changesFileName: changesFile
+            );
+
+            Assert.Equal(ExitCodes.Success, exitCode);
+
+            string saved = await File.ReadAllTextAsync(path: rulesetFile, cancellationToken: cancellationToken);
+            Assert.Contains("Warning", saved, StringComparison.Ordinal);
+        }
+        finally
+        {
+            DeleteIfExists(changesFile);
+            DeleteIfExists(rulesetFile);
+        }
+    }
+
+    [Fact]
+    public async Task UpdateRulesetAsync_WithOneMatchingAndOneMissingRule_SavesAndReturnsErrorExitCode()
+    {
+        Commands commands = new(this.GetTypedLogger<Commands>());
+        CancellationToken cancellationToken = this.CancellationToken();
+        string changesFile = await WriteJsonTempAsync(
+            content: """
+            [
+              {"ruleSet":"TestAnalyzer","rule":"TEST001","state":"Warning","description":"Test Rule"},
+              {"ruleSet":"TestAnalyzer","rule":"MISSING001","state":"Warning","description":"Missing Rule"}
+            ]
+            """,
+            cancellationToken: cancellationToken
+        );
+        string rulesetFile = await WriteXmlTempAsync(
+            content: """<RuleSet Name="Test" ToolsVersion="16.0"><Rules AnalyzerId="TestAnalyzer"><Rule Id="TEST001" Action="None" /></Rules></RuleSet>""",
+            cancellationToken: cancellationToken
+        );
+
+        try
+        {
+            int exitCode = await commands.UpdateRulesetAsync(
+                rulesetFileName: rulesetFile,
+                changesFileName: changesFile
+            );
+
+            Assert.Equal(ExitCodes.Error, exitCode);
 
             string saved = await File.ReadAllTextAsync(path: rulesetFile, cancellationToken: cancellationToken);
             Assert.Contains("Warning", saved, StringComparison.Ordinal);
