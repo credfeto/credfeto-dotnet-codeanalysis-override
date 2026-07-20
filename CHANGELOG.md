@@ -1,6 +1,9 @@
 ﻿# Changelog
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 <!--
 Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 -->
@@ -15,6 +18,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - ruleset command now exits non-zero when a changes-file rule is missing from the target ruleset
 ### Changed
 - SDK - Updated DotNet SDK to 10.0.302
+- Drop net9.0 target framework support; target net10.0 only (#51)
 ### Deprecated
 ### Removed
 ### Deployment Changes
