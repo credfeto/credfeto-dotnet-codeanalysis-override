@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Xml;
 using Credfeto.DotNet.Code.Analysis.Overrides.LoggingExtensions;
 using Credfeto.DotNet.Code.Analysis.Overrides.Models;
@@ -47,37 +48,10 @@ public static class XmlUpdater
     {
         XmlNodeList? rulesNodes = xmlRuleSet.SelectNodes("//RuleSet/Rules");
 
-        if (rulesNodes is null)
-        {
-            return null;
-        }
-
-        foreach (XmlNode rulesNode in rulesNodes)
-        {
-            if (
-                rulesNode is not XmlElement rulesElement
-                || !StringComparer.Ordinal.Equals(rulesElement.GetAttribute("AnalyzerId"), ruleSet)
-            )
-            {
-                continue;
-            }
-
-            foreach (XmlNode ruleNode in rulesElement.ChildNodes)
-            {
-                if (
-                    ruleNode is not XmlElement ruleElement
-                    || !StringComparer.Ordinal.Equals(ruleElement.Name, "Rule")
-                    || !StringComparer.Ordinal.Equals(ruleElement.GetAttribute("Id"), rule)
-                )
-                {
-                    continue;
-                }
-
-                return ruleElement;
-            }
-        }
-
-        return null;
+        return (rulesNodes?.OfType<XmlElement>() ?? [])
+            .Where(rulesElement => StringComparer.Ordinal.Equals(rulesElement.GetAttribute("AnalyzerId"), ruleSet))
+            .SelectMany(rulesElement => rulesElement.SelectNodes("Rule")?.OfType<XmlElement>() ?? [])
+            .FirstOrDefault(ruleElement => StringComparer.Ordinal.Equals(ruleElement.GetAttribute("Id"), rule));
     }
 
     private static string ConvertState(string newState)
