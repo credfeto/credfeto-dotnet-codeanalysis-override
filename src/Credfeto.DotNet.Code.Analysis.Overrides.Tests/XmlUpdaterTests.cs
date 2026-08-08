@@ -235,4 +235,67 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
         Assert.NotNull(element);
         Assert.Equal(expected: "Error", actual: element.GetAttribute("Action"));
     }
+
+    [Fact]
+    public void ChangeValueNormalizesWarningStateToCanonicalValue()
+    {
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "None");
+
+        RuleChangeOutcome outcome = doc.ChangeValue(
+            ruleSet: "MyAnalyzer",
+            rule: "MA0001",
+            name: "Some Rule",
+            newState: "warning",
+            logger: this._logger
+        );
+
+        Assert.Equal(RuleChangeOutcome.Changed, outcome);
+
+        XmlElement? element =
+            doc.SelectSingleNode("//RuleSet/Rules[@AnalyzerId='MyAnalyzer']/Rule[@Id='MA0001']") as XmlElement;
+        Assert.NotNull(element);
+        Assert.Equal(expected: "Warning", actual: element.GetAttribute("Action"));
+    }
+
+    [Fact]
+    public void ChangeValueNormalizesInfoStateToCanonicalValue()
+    {
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "None");
+
+        RuleChangeOutcome outcome = doc.ChangeValue(
+            ruleSet: "MyAnalyzer",
+            rule: "MA0001",
+            name: "Some Rule",
+            newState: "info",
+            logger: this._logger
+        );
+
+        Assert.Equal(RuleChangeOutcome.Changed, outcome);
+
+        XmlElement? element =
+            doc.SelectSingleNode("//RuleSet/Rules[@AnalyzerId='MyAnalyzer']/Rule[@Id='MA0001']") as XmlElement;
+        Assert.NotNull(element);
+        Assert.Equal(expected: "Info", actual: element.GetAttribute("Action"));
+    }
+
+    [Fact]
+    public void ChangeValueNormalizesHiddenStateToCanonicalValue()
+    {
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "None");
+
+        RuleChangeOutcome outcome = doc.ChangeValue(
+            ruleSet: "MyAnalyzer",
+            rule: "MA0001",
+            name: "Some Rule",
+            newState: "hidden",
+            logger: this._logger
+        );
+
+        Assert.Equal(RuleChangeOutcome.Changed, outcome);
+
+        XmlElement? element =
+            doc.SelectSingleNode("//RuleSet/Rules[@AnalyzerId='MyAnalyzer']/Rule[@Id='MA0001']") as XmlElement;
+        Assert.NotNull(element);
+        Assert.Equal(expected: "Hidden", actual: element.GetAttribute("Action"));
+    }
 }
