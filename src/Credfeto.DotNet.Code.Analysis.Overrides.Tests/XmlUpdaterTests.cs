@@ -216,7 +216,7 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
     }
 
     [Fact]
-    public void ChangeValueNormalizesCaseInsensitiveStateToCanonicalValue()
+    public void ChangeValueNormalizesErrorStateToCanonicalValue()
     {
         XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "None");
 

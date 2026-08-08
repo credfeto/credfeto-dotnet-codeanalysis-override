@@ -46,12 +46,13 @@ public static class XmlUpdater
 
     private static XmlElement? FindRuleElement(XmlDocument xmlRuleSet, string ruleSet, string rule)
     {
-        XmlNodeList? rulesNodes = xmlRuleSet.SelectNodes("//RuleSet/Rules");
+        XmlNodeList? ruleNodes = xmlRuleSet.SelectNodes("//RuleSet/Rules/Rule");
 
-        return (rulesNodes?.OfType<XmlElement>() ?? [])
-            .Where(rulesElement => StringComparer.Ordinal.Equals(rulesElement.GetAttribute("AnalyzerId"), ruleSet))
-            .SelectMany(rulesElement => rulesElement.SelectNodes("Rule")?.OfType<XmlElement>() ?? [])
-            .FirstOrDefault(ruleElement => StringComparer.Ordinal.Equals(ruleElement.GetAttribute("Id"), rule));
+        return (ruleNodes?.OfType<XmlElement>() ?? []).FirstOrDefault(ruleElement =>
+            StringComparer.Ordinal.Equals(ruleElement.GetAttribute("Id"), rule)
+            && ruleElement.ParentNode is XmlElement rulesElement
+            && StringComparer.Ordinal.Equals(rulesElement.GetAttribute("AnalyzerId"), ruleSet)
+        );
     }
 
     private static string ConvertState(string newState)
