@@ -16,6 +16,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Fixed
 - Fixed InternalsVisibleTo declared via csproj AssemblyAttribute item, which violated the MustNotUseAssemblyAttributeItems build check
 - ruleset command now exits non-zero when a changes-file rule is missing from the target ruleset
+- TBD - to be finalized after review
 ### Changed
 - SDK - Updated DotNet SDK to 10.0.302
 - Drop net9.0 target framework support; target net10.0 only (#51)
