@@ -17,8 +17,9 @@ public static class XmlUpdater
         ILogger logger
     )
     {
-        XmlElement? element =
-            xmlRuleSet.SelectSingleNode($"//RuleSet/Rules[@AnalyzerId='{ruleSet}']/Rule[@Id='{rule}']") as XmlElement;
+        string state = ConvertState(newState);
+
+        XmlElement? element = FindRuleElement(xmlRuleSet: xmlRuleSet, ruleSet: ruleSet, rule: rule);
 
         if (element is null)
         {
@@ -29,22 +30,70 @@ public static class XmlUpdater
 
         string existingValue = element.GetAttribute("Action");
 
-        if (StringComparer.Ordinal.Equals(x: existingValue, y: newState))
+        if (StringComparer.Ordinal.Equals(x: existingValue, y: state))
         {
             logger.RuleNotChangedAsIdentical(ruleSet: ruleSet, rule: rule, name: name, setting: existingValue);
 
             return RuleChangeOutcome.Unchanged;
         }
 
-        element.SetAttribute(name: "Action", value: newState);
-        logger.RuleChanged(
-            ruleSet: ruleSet,
-            rule: rule,
-            name: name,
-            existingSetting: existingValue,
-            newSetting: newState
-        );
+        element.SetAttribute(name: "Action", value: state);
+        logger.RuleChanged(ruleSet: ruleSet, rule: rule, name: name, existingSetting: existingValue, newSetting: state);
 
         return RuleChangeOutcome.Changed;
+    }
+
+    private static XmlElement? FindRuleElement(XmlDocument xmlRuleSet, string ruleSet, string rule)
+    {
+        XmlNodeList? rulesNodes = xmlRuleSet.SelectNodes("//RuleSet/Rules");
+
+        if (rulesNodes is null)
+        {
+            return null;
+        }
+
+        foreach (XmlNode rulesNode in rulesNodes)
+        {
+            if (
+                rulesNode is not XmlElement rulesElement
+                || !StringComparer.Ordinal.Equals(rulesElement.GetAttribute("AnalyzerId"), ruleSet)
+            )
+            {
+                continue;
+            }
+
+            foreach (XmlNode ruleNode in rulesElement.ChildNodes)
+            {
+                if (
+                    ruleNode is not XmlElement ruleElement
+                    || !StringComparer.Ordinal.Equals(ruleElement.Name, "Rule")
+                    || !StringComparer.Ordinal.Equals(ruleElement.GetAttribute("Id"), rule)
+                )
+                {
+                    continue;
+                }
+
+                return ruleElement;
+            }
+        }
+
+        return null;
+    }
+
+    private static string ConvertState(string newState)
+    {
+        return newState.ToUpperInvariant() switch
+        {
+            "ERROR" => "Error",
+            "WARNING" => "Warning",
+            "INFO" => "Info",
+            "HIDDEN" => "Hidden",
+            "NONE" => "None",
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(newState),
+                actualValue: newState,
+                message: "Unsupported state"
+            ),
+        };
     }
 }

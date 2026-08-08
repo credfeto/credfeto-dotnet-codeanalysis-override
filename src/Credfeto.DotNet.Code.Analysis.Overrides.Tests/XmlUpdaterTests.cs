@@ -1,4 +1,5 @@
-﻿using System.Xml;
+using System;
+using System.Xml;
 using Credfeto.DotNet.Code.Analysis.Overrides;
 using Credfeto.DotNet.Code.Analysis.Overrides.Models;
 using FunFair.Test.Common;
@@ -48,7 +49,7 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
-            newState: "error",
+            newState: "Error",
             logger: this._logger
         );
 
@@ -58,13 +59,13 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
     [Fact]
     public void ChangeValueReturnsUnchangedWhenExistingActionIsIdentical()
     {
-        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "error");
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "Error");
 
         RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
-            newState: "error",
+            newState: "Error",
             logger: this._logger
         );
 
@@ -74,13 +75,13 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
     [Fact]
     public void ChangeValueReturnsChangedWhenActionDiffers()
     {
-        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "none");
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "None");
 
         RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
-            newState: "error",
+            newState: "Error",
             logger: this._logger
         );
 
@@ -90,13 +91,13 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
     [Fact]
     public void ChangeValueUpdatesActionAttributeWhenDiffers()
     {
-        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "none");
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "None");
 
         RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
-            newState: "suggestion",
+            newState: "Warning",
             logger: this._logger
         );
 
@@ -105,19 +106,19 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
         XmlElement? element =
             doc.SelectSingleNode("//RuleSet/Rules[@AnalyzerId='MyAnalyzer']/Rule[@Id='MA0001']") as XmlElement;
         Assert.NotNull(element);
-        Assert.Equal(expected: "suggestion", actual: element.GetAttribute("Action"));
+        Assert.Equal(expected: "Warning", actual: element.GetAttribute("Action"));
     }
 
     [Fact]
     public void ChangeValueReturnsRuleNotPresentWhenRuleSetDoesNotMatch()
     {
-        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "OtherAnalyzer", rule: "MA0001", action: "none");
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "OtherAnalyzer", rule: "MA0001", action: "None");
 
         RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
-            newState: "error",
+            newState: "Error",
             logger: this._logger
         );
 
@@ -127,13 +128,13 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
     [Fact]
     public void ChangeValueReturnsRuleNotPresentWhenRuleIdDoesNotMatch()
     {
-        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA9999", action: "none");
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA9999", action: "None");
 
         RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "MyAnalyzer",
             rule: "MA0001",
             name: "Some Rule",
-            newState: "error",
+            newState: "Error",
             logger: this._logger
         );
 
@@ -143,13 +144,13 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
     [Fact]
     public void ChangeValueReturnsChangedAndSetsNewStateForDifferentAction()
     {
-        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "AnalyzerX", rule: "AX001", action: "suggestion");
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "AnalyzerX", rule: "AX001", action: "Warning");
 
         RuleChangeOutcome outcome = doc.ChangeValue(
             ruleSet: "AnalyzerX",
             rule: "AX001",
             name: "Rule AX001",
-            newState: "none",
+            newState: "None",
             logger: this._logger
         );
 
@@ -158,6 +159,80 @@ public sealed class XmlUpdaterTests : IntegrationTestBase
         XmlElement? element =
             doc.SelectSingleNode("//RuleSet/Rules[@AnalyzerId='AnalyzerX']/Rule[@Id='AX001']") as XmlElement;
         Assert.NotNull(element);
-        Assert.Equal(expected: "none", actual: element.GetAttribute("Action"));
+        Assert.Equal(expected: "None", actual: element.GetAttribute("Action"));
+    }
+
+    [Fact]
+    public void ChangeValueReturnsRuleNotPresentForRuleSetContainingApostropheWithoutThrowing()
+    {
+        XmlDocument doc = CreateEmptyXmlDocument();
+
+        RuleChangeOutcome outcome = doc.ChangeValue(
+            ruleSet: "O'Brien.Analyzers",
+            rule: "OB0001",
+            name: "Some Rule",
+            newState: "Error",
+            logger: this._logger
+        );
+
+        Assert.Equal(RuleChangeOutcome.RuleNotPresent, outcome);
+    }
+
+    [Fact]
+    public void ChangeValueMatchesRuleSetContainingApostrophe()
+    {
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "O'Brien.Analyzers", rule: "OB0001", action: "None");
+
+        RuleChangeOutcome outcome = doc.ChangeValue(
+            ruleSet: "O'Brien.Analyzers",
+            rule: "OB0001",
+            name: "Some Rule",
+            newState: "Error",
+            logger: this._logger
+        );
+
+        Assert.Equal(RuleChangeOutcome.Changed, outcome);
+    }
+
+    [Fact]
+    public void ChangeValueThrowsForUnsupportedStateAndDoesNotMutateDocument()
+    {
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "None");
+
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            doc.ChangeValue(
+                ruleSet: "MyAnalyzer",
+                rule: "MA0001",
+                name: "Some Rule",
+                newState: "Eror",
+                logger: this._logger
+            )
+        );
+
+        XmlElement? element =
+            doc.SelectSingleNode("//RuleSet/Rules[@AnalyzerId='MyAnalyzer']/Rule[@Id='MA0001']") as XmlElement;
+        Assert.NotNull(element);
+        Assert.Equal(expected: "None", actual: element.GetAttribute("Action"));
+    }
+
+    [Fact]
+    public void ChangeValueNormalizesCaseInsensitiveStateToCanonicalValue()
+    {
+        XmlDocument doc = CreateXmlDocumentWithRule(ruleSet: "MyAnalyzer", rule: "MA0001", action: "None");
+
+        RuleChangeOutcome outcome = doc.ChangeValue(
+            ruleSet: "MyAnalyzer",
+            rule: "MA0001",
+            name: "Some Rule",
+            newState: "error",
+            logger: this._logger
+        );
+
+        Assert.Equal(RuleChangeOutcome.Changed, outcome);
+
+        XmlElement? element =
+            doc.SelectSingleNode("//RuleSet/Rules[@AnalyzerId='MyAnalyzer']/Rule[@Id='MA0001']") as XmlElement;
+        Assert.NotNull(element);
+        Assert.Equal(expected: "Error", actual: element.GetAttribute("Action"));
     }
 }
