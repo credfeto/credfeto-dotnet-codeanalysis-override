@@ -10,12 +10,14 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 
 ## [Unreleased]
 ### Security
+- ruleset command no longer builds XPath queries from unvalidated rule-change values, preventing XPath injection via ruleSet/rule names containing special characters such as apostrophes
 ### Added
 - Unit tests for Credfeto.DotNet.Code.Analysis.Overrides.Cmd
 - Increased code coverage to 100% for Credfeto.DotNet.Code.Analysis.Overrides
 ### Fixed
 - Fixed InternalsVisibleTo declared via csproj AssemblyAttribute item, which violated the MustNotUseAssemblyAttributeItems build check
 - ruleset command now exits non-zero when a changes-file rule is missing from the target ruleset
+- ruleset command now rejects unsupported Action values in changes files instead of writing them verbatim into the .ruleset file
 ### Changed
 - SDK - Updated DotNet SDK to 10.0.302
 - Drop net9.0 target framework support; target net10.0 only (#51)
