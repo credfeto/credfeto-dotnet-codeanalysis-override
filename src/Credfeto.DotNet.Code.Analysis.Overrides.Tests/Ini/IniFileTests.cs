@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -148,6 +148,139 @@ public sealed class IniFileTests : IntegrationTestBase
         finally
         {
             File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
+    public async Task RoundTripLoadAsyncAndSaveAsyncPreservesTrailingCommentsAfterPropertyAsync()
+    {
+        CancellationToken cancellationToken = this.CancellationToken();
+        string sourceTempFile = Path.GetTempFileName();
+        string destTempFile = Path.GetTempFileName();
+
+        try
+        {
+            const string original =
+                "dotnet_diagnostic.CA1002.severity = error\n\n# TODO: revisit these suppressions when analyzer X is fixed\n# See discussion in PR 123\n";
+            await File.WriteAllTextAsync(
+                path: sourceTempFile,
+                contents: original,
+                encoding: Encoding.UTF8,
+                cancellationToken: cancellationToken
+            );
+
+            ISettings settings = await IniFile.LoadAsync(
+                fileName: sourceTempFile,
+                cancellationToken: cancellationToken
+            );
+            await IniFile.SaveAsync(fileName: destTempFile, settings: settings, cancellationToken: cancellationToken);
+
+            string saved = await File.ReadAllTextAsync(path: destTempFile, cancellationToken: cancellationToken);
+            int propertyIndex = saved.IndexOf("dotnet_diagnostic.CA1002.severity", StringComparison.Ordinal);
+            int firstCommentIndex = saved.IndexOf(
+                "TODO: revisit these suppressions when analyzer X is fixed",
+                StringComparison.Ordinal
+            );
+            int secondCommentIndex = saved.IndexOf("See discussion in PR 123", StringComparison.Ordinal);
+
+            Assert.True(propertyIndex >= 0, "property line missing from saved content");
+            Assert.True(
+                firstCommentIndex > propertyIndex,
+                "trailing comment must appear after the property, not before or attached to it"
+            );
+            Assert.True(secondCommentIndex > firstCommentIndex, "second trailing comment line must follow the first");
+            Assert.True(
+                saved.TrimEnd().EndsWith("# See discussion in PR 123", StringComparison.Ordinal),
+                "trailing comment block must be the last content in the saved file"
+            );
+        }
+        finally
+        {
+            File.Delete(sourceTempFile);
+            File.Delete(destTempFile);
+        }
+    }
+
+    [Fact]
+    public async Task RoundTripLoadAsyncAndSaveAsyncPreservesTrailingCommentsInCommentOnlyFileAsync()
+    {
+        CancellationToken cancellationToken = this.CancellationToken();
+        string sourceTempFile = Path.GetTempFileName();
+        string destTempFile = Path.GetTempFileName();
+
+        try
+        {
+            const string original = "# Just a comment\n# Another comment line\n";
+            await File.WriteAllTextAsync(
+                path: sourceTempFile,
+                contents: original,
+                encoding: Encoding.UTF8,
+                cancellationToken: cancellationToken
+            );
+
+            ISettings settings = await IniFile.LoadAsync(
+                fileName: sourceTempFile,
+                cancellationToken: cancellationToken
+            );
+            await IniFile.SaveAsync(fileName: destTempFile, settings: settings, cancellationToken: cancellationToken);
+
+            string saved = await File.ReadAllTextAsync(path: destTempFile, cancellationToken: cancellationToken);
+            Assert.False(
+                string.IsNullOrEmpty(saved),
+                "comment-only file must not round-trip to an empty save (pre-fix behaviour)"
+            );
+
+            int firstCommentIndex = saved.IndexOf("Just a comment", StringComparison.Ordinal);
+            int secondCommentIndex = saved.IndexOf("Another comment line", StringComparison.Ordinal);
+
+            Assert.True(firstCommentIndex >= 0, "first comment missing from saved content");
+            Assert.True(secondCommentIndex > firstCommentIndex, "second comment line must follow the first");
+        }
+        finally
+        {
+            File.Delete(sourceTempFile);
+            File.Delete(destTempFile);
+        }
+    }
+
+    [Fact]
+    public async Task RoundTripLoadAsyncAndSaveAsyncPreservesTrailingCommentsAfterNamedSectionAsync()
+    {
+        CancellationToken cancellationToken = this.CancellationToken();
+        string sourceTempFile = Path.GetTempFileName();
+        string destTempFile = Path.GetTempFileName();
+
+        try
+        {
+            const string original = "[MySect]\nkey = val\n\n# trailing comment\n";
+            await File.WriteAllTextAsync(
+                path: sourceTempFile,
+                contents: original,
+                encoding: Encoding.UTF8,
+                cancellationToken: cancellationToken
+            );
+
+            ISettings settings = await IniFile.LoadAsync(
+                fileName: sourceTempFile,
+                cancellationToken: cancellationToken
+            );
+            await IniFile.SaveAsync(fileName: destTempFile, settings: settings, cancellationToken: cancellationToken);
+
+            string saved = await File.ReadAllTextAsync(path: destTempFile, cancellationToken: cancellationToken);
+            int sectionIndex = saved.IndexOf("[MySect]", StringComparison.Ordinal);
+            int commentIndex = saved.IndexOf("trailing comment", StringComparison.Ordinal);
+
+            Assert.True(sectionIndex >= 0, "named section missing from saved content");
+            Assert.True(commentIndex > sectionIndex, "trailing comment must appear after the named section");
+            Assert.True(
+                saved.TrimEnd().EndsWith("# trailing comment", StringComparison.Ordinal),
+                "trailing comment block must be the last content, separated from the section by exactly one blank line"
+            );
+        }
+        finally
+        {
+            File.Delete(sourceTempFile);
+            File.Delete(destTempFile);
         }
     }
 

@@ -24,21 +24,38 @@ internal sealed class Settings : ISettings
 
     private IDictionary<string, Section> NamedSections { get; }
 
+    private IReadOnlyList<string> TrailingComments { get; set; } = [];
+
     public INamedSection? GetSection(string sectionName)
     {
-        return this.NamedSections.TryGetValue(key: sectionName, out Section? section)
-            ? section
-            : null;
+        return this.NamedSections.TryGetValue(key: sectionName, out Section? section) ? section : null;
+    }
+
+    internal void SetTrailingComments(IReadOnlyList<string> comments)
+    {
+        this.TrailingComments = comments;
     }
 
     public string Save()
     {
         bool previousSection = false;
 
-        return this.NamedSections.Values.Where(item => !item.IsEmpty)
-                   .OrderBy(item => item.Order)
-                   .Aggregate(this.SaveGlobalSection(ref previousSection), func: (current, values) => values.Save(current.WithPreviousSection(ref previousSection)))
-                   .ToString();
+        StringBuilder stringBuilder = this
+            .NamedSections.Values.Where(item => !item.IsEmpty)
+            .OrderBy(item => item.Order)
+            .Aggregate(
+                this.SaveGlobalSection(ref previousSection),
+                func: (current, values) => values.Save(current.WithPreviousSection(ref previousSection))
+            );
+
+        if (this.TrailingComments.Count != 0)
+        {
+            stringBuilder = stringBuilder
+                .WithPreviousSection(ref previousSection)
+                .AppendComments(this.TrailingComments);
+        }
+
+        return stringBuilder.ToString();
     }
 
     public string? Get(string key)
@@ -88,12 +105,12 @@ internal sealed class Settings : ISettings
             return Raise.SectionAlreadyExists();
         }
 
-        Section section = new(this,
-                              order: ++this._sectionOrder,
-                              name: sectionName,
-                              [
-                                  .. comments.Select(Comments.Parse)
-                              ]);
+        Section section = new(
+            this,
+            order: ++this._sectionOrder,
+            name: sectionName,
+            [.. comments.Select(Comments.Parse)]
+        );
         this.NamedSections.Add(key: sectionName, value: section);
 
         return section;
