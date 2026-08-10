@@ -189,6 +189,8 @@ public sealed class IniFileTests : IntegrationTestBase
                 "trailing comment must appear after the property, not before or attached to it"
             );
             Assert.True(secondCommentIndex > firstCommentIndex, "second trailing comment line must follow the first");
+            string textBetweenComments = saved[(saved.IndexOf('\n', firstCommentIndex) + 1)..secondCommentIndex];
+            Assert.DoesNotContain("#" + Environment.NewLine, textBetweenComments, StringComparison.Ordinal);
             Assert.True(
                 saved.TrimEnd().EndsWith("# See discussion in PR 123", StringComparison.Ordinal),
                 "trailing comment block must be the last content in the saved file"

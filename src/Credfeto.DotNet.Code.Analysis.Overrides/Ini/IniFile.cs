@@ -214,18 +214,13 @@ public static class IniFile
 
         public void OnComment(string comment)
         {
-            if (this._commentStarted)
+            if (this._commentStarted && this._lastLineWasBlank)
             {
-                if (this._lastLineWasBlank)
-                {
-                    this._commentLines = this._commentLines.Add(string.Empty);
-                    this._lastLineWasBlank = false;
-                }
+                this._commentLines = this._commentLines.Add(string.Empty);
             }
-            else
-            {
-                this._commentStarted = true;
-            }
+
+            this._commentStarted = true;
+            this._lastLineWasBlank = false;
 
             this._commentLines = this._commentLines.Add(comment.Parse());
         }
