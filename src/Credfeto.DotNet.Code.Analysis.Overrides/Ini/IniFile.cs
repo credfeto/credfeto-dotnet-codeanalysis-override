@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -189,13 +190,13 @@ public static class IniFile
                 lines.Add(line);
             }
 
-            return Extract([.. lines]);
+            return Extract(CollectionsMarshal.AsSpan(lines));
         }
     }
 
     private sealed class ExtractContext
     {
-        private ImmutableArray<string> _commentLines;
+        private readonly ImmutableArray<string>.Builder _commentLines;
 
         private bool _commentStarted;
         private bool _lastLineWasBlank;
@@ -204,7 +205,7 @@ public static class IniFile
         {
             this._lastLineWasBlank = false;
             this._commentStarted = false;
-            this._commentLines = [];
+            this._commentLines = ImmutableArray.CreateBuilder<string>();
         }
 
         public void OnBlankLine()
@@ -216,13 +217,13 @@ public static class IniFile
         {
             if (this._commentStarted && this._lastLineWasBlank)
             {
-                this._commentLines = this._commentLines.Add(string.Empty);
+                this._commentLines.Add(string.Empty);
             }
 
             this._commentStarted = true;
             this._lastLineWasBlank = false;
 
-            this._commentLines = this._commentLines.Add(comment.Parse());
+            this._commentLines.Add(comment.Parse());
         }
 
         public IReadOnlyList<string> OnSection()
@@ -242,16 +243,12 @@ public static class IniFile
 
         private IReadOnlyList<string> CommonComments()
         {
-            try
-            {
-                return this._commentLines;
-            }
-            finally
-            {
-                this._lastLineWasBlank = false;
-                this._commentStarted = false;
-                this._commentLines = [];
-            }
+            ImmutableArray<string> comments = this._commentLines.DrainToImmutable();
+
+            this._lastLineWasBlank = false;
+            this._commentStarted = false;
+
+            return comments;
         }
     }
 }
