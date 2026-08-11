@@ -13,5 +13,6 @@
   <Project Path="Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests/Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests.csproj" Type="C#"/>
     <Project Path="Credfeto.DotNet.Code.Analysis.Overrides.Tests\Credfeto.DotNet.Code.Analysis.Overrides.Tests.csproj"
              Type="C#"/>
+  <Project Path="Credfeto.DotNet.Code.Analysis.Overrides.Benchmark.Tests/Credfeto.DotNet.Code.Analysis.Overrides.Benchmark.Tests.csproj" Type="C#"/>
   <Project Path="Credfeto.DotNet.Code.Analysis.Overrides/Credfeto.DotNet.Code.Analysis.Overrides.csproj" />
 </Solution>
