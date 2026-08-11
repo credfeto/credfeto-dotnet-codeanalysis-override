@@ -287,6 +287,40 @@ public sealed class IniFileTests : IntegrationTestBase
     }
 
     [Fact]
+    public void LoadReturnsSettingsWithGlobalPropertyAndNamedSection()
+    {
+        const string content = "global = true\n[MySect]\nkey = val\n";
+
+        ISettings settings = IniFile.Load(content);
+
+        Assert.Equal(expected: "true", actual: settings.Get("global"));
+
+        INamedSection? section = settings.GetSection("MySect");
+        Assert.NotNull(section);
+        Assert.Equal(expected: "val", actual: section.Get("key"));
+    }
+
+    [Fact]
+    public void LoadPreservesBlankLineWithinCommentBlockBeforeProperty()
+    {
+        const string content = "; first\n\n; second\nkey = value\n";
+
+        ISettings settings = IniFile.Load(content);
+        string saved = settings.Save();
+
+        int firstCommentIndex = saved.IndexOf("first", StringComparison.Ordinal);
+        int secondCommentIndex = saved.IndexOf("second", StringComparison.Ordinal);
+        int propertyIndex = saved.IndexOf("key", StringComparison.Ordinal);
+
+        Assert.True(firstCommentIndex >= 0, "first comment line missing from saved content");
+        Assert.True(secondCommentIndex > firstCommentIndex, "second comment line must follow the first");
+        Assert.True(propertyIndex > secondCommentIndex, "property must appear after the comment block");
+
+        string textBetweenComments = saved[(saved.IndexOf('\n', firstCommentIndex) + 1)..secondCommentIndex];
+        Assert.Equal(expected: "#" + Environment.NewLine + "# ", actual: textBetweenComments);
+    }
+
+    [Fact]
     public async Task LoadAsyncWithNamedSectionReturnsCorrectSectionAsync()
     {
         CancellationToken cancellationToken = this.CancellationToken();
