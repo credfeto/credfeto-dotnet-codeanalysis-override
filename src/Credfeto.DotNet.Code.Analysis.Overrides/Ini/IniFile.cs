@@ -50,8 +50,15 @@ public static class IniFile
             {
                 ++lineNumber;
 
-                currentSection = ProcessSettingsLine(line: line, context: context, currentSection: currentSection, settings: settings);
+                currentSection = ProcessSettingsLine(
+                    line: line,
+                    context: context,
+                    currentSection: currentSection,
+                    settings: settings
+                );
             }
+
+            settings.SetTrailingComments(context.OnEnd());
 
             return settings;
         }
@@ -61,7 +68,12 @@ public static class IniFile
         }
     }
 
-    private static ISection ProcessSettingsLine(string line, ExtractContext context, ISection currentSection, Settings settings)
+    private static ISection ProcessSettingsLine(
+        string line,
+        ExtractContext context,
+        ISection currentSection,
+        Settings settings
+    )
     {
         if (string.IsNullOrWhiteSpace(line))
         {
@@ -79,7 +91,7 @@ public static class IniFile
 
         if (IsSection(line: line, out string? newSection))
         {
-            currentSection = settings.CreateSection(sectionName: newSection, [..context.OnSection()]);
+            currentSection = settings.CreateSection(sectionName: newSection, [.. context.OnSection()]);
 
             return currentSection;
         }
@@ -88,17 +100,19 @@ public static class IniFile
         {
             currentSection = currentSection switch
             {
-                INamedSection namedSection => namedSection.CreateProperty(key)
-                                                          .WithValue(value)
-                                                          .WithOptionalLineComment(lineComment)
-                                                          .WithOptionalBlockComment(context.OnProperty())
-                                                          .Apply(),
-                ISettings globalSettings => globalSettings.CreateProperty(key)
-                                                          .WithValue(value)
-                                                          .WithOptionalLineComment(lineComment)
-                                                          .WithOptionalBlockComment(context.OnProperty())
-                                                          .Apply(),
-                _ => throw new UnreachableException("Unsupported section type")
+                INamedSection namedSection => namedSection
+                    .CreateProperty(key)
+                    .WithValue(value)
+                    .WithOptionalLineComment(lineComment)
+                    .WithOptionalBlockComment(context.OnProperty())
+                    .Apply(),
+                ISettings globalSettings => globalSettings
+                    .CreateProperty(key)
+                    .WithValue(value)
+                    .WithOptionalLineComment(lineComment)
+                    .WithOptionalBlockComment(context.OnProperty())
+                    .Apply(),
+                _ => throw new UnreachableException("Unsupported section type"),
             };
 
             return currentSection;
@@ -107,10 +121,14 @@ public static class IniFile
         throw new UnknownFormatException(line);
     }
 
-    private static bool IsProperty(string line, [NotNullWhen(true)] out string? key, [NotNullWhen(true)] out string? value, [NotNullWhen(true)] out string? lineComment)
+    private static bool IsProperty(
+        string line,
+        [NotNullWhen(true)] out string? key,
+        [NotNullWhen(true)] out string? value,
+        [NotNullWhen(true)] out string? lineComment
+    )
     {
-        Match match = IniSectionRegex.Property()
-                                     .Match(line);
+        Match match = IniSectionRegex.Property().Match(line);
 
         if (!match.Success)
         {
@@ -123,16 +141,14 @@ public static class IniFile
 
         key = match.Groups["Key"].Value;
         value = match.Groups["Value"].Value;
-        lineComment = match.Groups["Comment"]
-                           .Value.TrimEnd();
+        lineComment = match.Groups["Comment"].Value.TrimEnd();
 
         return true;
     }
 
     private static bool IsSection(string line, [NotNullWhen(true)] out string? sectionTitle)
     {
-        Match match = IniSectionRegex.Section()
-                                     .Match(line);
+        Match match = IniSectionRegex.Section().Match(line);
 
         if (!match.Success)
         {
@@ -148,8 +164,7 @@ public static class IniFile
 
     private static bool IsComment(string line, [NotNullWhen(true)] out string? comment)
     {
-        Match match = IniSectionRegex.Comment()
-                                     .Match(line);
+        Match match = IniSectionRegex.Comment().Match(line);
 
         if (!match.Success)
         {
@@ -158,8 +173,7 @@ public static class IniFile
             return false;
         }
 
-        comment = match.Groups["Comment"]
-                       .Value.TrimEnd();
+        comment = match.Groups["Comment"].Value.TrimEnd();
 
         return true;
     }
@@ -175,7 +189,7 @@ public static class IniFile
                 lines.Add(line);
             }
 
-            return Extract([..lines]);
+            return Extract([.. lines]);
         }
     }
 
@@ -200,18 +214,13 @@ public static class IniFile
 
         public void OnComment(string comment)
         {
-            if (this._commentStarted)
+            if (this._commentStarted && this._lastLineWasBlank)
             {
-                if (this._lastLineWasBlank)
-                {
-                    this._commentLines = this._commentLines.Add(string.Empty);
-                    this._lastLineWasBlank = false;
-                }
+                this._commentLines = this._commentLines.Add(string.Empty);
             }
-            else
-            {
-                this._commentStarted = true;
-            }
+
+            this._commentStarted = true;
+            this._lastLineWasBlank = false;
 
             this._commentLines = this._commentLines.Add(comment.Parse());
         }
@@ -222,6 +231,11 @@ public static class IniFile
         }
 
         public IReadOnlyList<string> OnProperty()
+        {
+            return this.CommonComments();
+        }
+
+        public IReadOnlyList<string> OnEnd()
         {
             return this.CommonComments();
         }
