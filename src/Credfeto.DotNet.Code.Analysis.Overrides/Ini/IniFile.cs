@@ -59,7 +59,7 @@ public static class IniFile
                 );
             }
 
-            settings.SetTrailingComments(context.OnEnd());
+            settings.SetTrailingComments(context.TakeComments());
 
             return settings;
         }
@@ -92,7 +92,7 @@ public static class IniFile
 
         if (IsSection(line: line, out string? newSection))
         {
-            currentSection = settings.CreateSection(sectionName: newSection, context.OnSection());
+            currentSection = settings.CreateSection(sectionName: newSection, context.TakeComments());
 
             return currentSection;
         }
@@ -105,13 +105,13 @@ public static class IniFile
                     .CreateProperty(key)
                     .WithValue(value)
                     .WithOptionalLineComment(lineComment)
-                    .WithOptionalBlockComment(context.OnProperty())
+                    .WithOptionalBlockComment(context.TakeComments())
                     .Apply(),
                 ISettings globalSettings => globalSettings
                     .CreateProperty(key)
                     .WithValue(value)
                     .WithOptionalLineComment(lineComment)
-                    .WithOptionalBlockComment(context.OnProperty())
+                    .WithOptionalBlockComment(context.TakeComments())
                     .Apply(),
                 _ => throw new UnreachableException("Unsupported section type"),
             };
@@ -217,22 +217,7 @@ public static class IniFile
             this._commentLines.Add(comment.Parse());
         }
 
-        public IReadOnlyList<string> OnSection()
-        {
-            return this.CommonComments();
-        }
-
-        public IReadOnlyList<string> OnProperty()
-        {
-            return this.CommonComments();
-        }
-
-        public IReadOnlyList<string> OnEnd()
-        {
-            return this.CommonComments();
-        }
-
-        private IReadOnlyList<string> CommonComments()
+        public IReadOnlyList<string> TakeComments()
         {
             return this._commentLines.DrainToImmutable();
         }
