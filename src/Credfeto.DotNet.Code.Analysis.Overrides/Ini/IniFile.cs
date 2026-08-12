@@ -92,7 +92,7 @@ public static class IniFile
 
         if (IsSection(line: line, out string? newSection))
         {
-            currentSection = settings.CreateSection(sectionName: newSection, [.. context.OnSection()]);
+            currentSection = settings.CreateSection(sectionName: newSection, context.OnSection());
 
             return currentSection;
         }
@@ -234,11 +234,7 @@ public static class IniFile
 
         private IReadOnlyList<string> CommonComments()
         {
-            ImmutableArray<string> comments = this._commentLines.DrainToImmutable();
-
-            this._lastLineWasBlank = false;
-
-            return comments;
+            return this._commentLines.DrainToImmutable();
         }
     }
 }
