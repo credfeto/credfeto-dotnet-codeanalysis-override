@@ -11,7 +11,7 @@ public sealed class IniFileLoadBenchmarkTests : LoggingTestBase
         : base(output) { }
 
     [Fact]
-    public void LoadLargeLeadingCommentBlock_AllocatesLinearlyInCommentCount()
+    public void LoadLargeLeadingCommentBlock_DoesNotExceedAllocationCeiling()
     {
         (Summary summary, AccumulationLogger logger) = Benchmark<IniFileLoadBenchmark>();
 
