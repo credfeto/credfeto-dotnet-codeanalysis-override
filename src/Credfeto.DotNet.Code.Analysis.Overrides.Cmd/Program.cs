@@ -28,7 +28,7 @@ internal static class Program
         }
     }
 
-    private static CoconaApp CreateApp(string[] args)
+    internal static CoconaApp CreateApp(string[] args)
     {
         CoconaAppBuilder builder = CoconaApp.CreateBuilder(args);
         builder.Services.AddServices();
