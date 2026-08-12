@@ -196,17 +196,9 @@ public static class IniFile
 
     private sealed class ExtractContext
     {
-        private readonly ImmutableArray<string>.Builder _commentLines;
+        private readonly ImmutableArray<string>.Builder _commentLines = ImmutableArray.CreateBuilder<string>();
 
-        private bool _commentStarted;
         private bool _lastLineWasBlank;
-
-        public ExtractContext()
-        {
-            this._lastLineWasBlank = false;
-            this._commentStarted = false;
-            this._commentLines = ImmutableArray.CreateBuilder<string>();
-        }
 
         public void OnBlankLine()
         {
@@ -215,12 +207,11 @@ public static class IniFile
 
         public void OnComment(string comment)
         {
-            if (this._commentStarted && this._lastLineWasBlank)
+            if (this._commentLines.Count > 0 && this._lastLineWasBlank)
             {
                 this._commentLines.Add(string.Empty);
             }
 
-            this._commentStarted = true;
             this._lastLineWasBlank = false;
 
             this._commentLines.Add(comment.Parse());
@@ -246,7 +237,6 @@ public static class IniFile
             ImmutableArray<string> comments = this._commentLines.DrainToImmutable();
 
             this._lastLineWasBlank = false;
-            this._commentStarted = false;
 
             return comments;
         }

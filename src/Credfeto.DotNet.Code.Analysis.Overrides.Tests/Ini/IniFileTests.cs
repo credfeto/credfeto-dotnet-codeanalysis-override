@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -306,6 +307,10 @@ public sealed class IniFileTests : IntegrationTestBase
         const string content = "; first\n\n; second\nkey = value\n";
 
         ISettings settings = IniFile.Load(content);
+
+        IReadOnlyList<string> comments = settings.PropertyBlockComment("key");
+        Assert.Equal(expected: [" first", "", " second"], actual: comments);
+
         string saved = settings.Save();
 
         int firstCommentIndex = saved.IndexOf("first", StringComparison.Ordinal);
