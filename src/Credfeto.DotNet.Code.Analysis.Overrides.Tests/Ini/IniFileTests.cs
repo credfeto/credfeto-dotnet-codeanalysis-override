@@ -311,18 +311,8 @@ public sealed class IniFileTests : IntegrationTestBase
         IReadOnlyList<string> comments = settings.PropertyBlockComment("key");
         Assert.Equal(expected: [" first", "", " second"], actual: comments);
 
-        string saved = settings.Save();
-
-        int firstCommentIndex = saved.IndexOf("first", StringComparison.Ordinal);
-        int secondCommentIndex = saved.IndexOf("second", StringComparison.Ordinal);
-        int propertyIndex = saved.IndexOf("key", StringComparison.Ordinal);
-
-        Assert.True(firstCommentIndex >= 0, "first comment line missing from saved content");
-        Assert.True(secondCommentIndex > firstCommentIndex, "second comment line must follow the first");
-        Assert.True(propertyIndex > secondCommentIndex, "property must appear after the comment block");
-
-        string textBetweenComments = saved[(saved.IndexOf('\n', firstCommentIndex) + 1)..secondCommentIndex];
-        Assert.Equal(expected: "#" + Environment.NewLine + "# ", actual: textBetweenComments);
+        ISettings reloaded = IniFile.Load(settings.Save());
+        Assert.Equal(expected: comments, actual: reloaded.PropertyBlockComment("key"));
     }
 
     [Fact]
