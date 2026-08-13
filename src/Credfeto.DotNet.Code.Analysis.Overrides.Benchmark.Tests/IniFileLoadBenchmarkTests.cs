@@ -14,7 +14,7 @@ public sealed class IniFileLoadBenchmarkTests : LoggingTestBase
     // quadratic accumulation regresses. The CI test job excludes this project
     // (--filter-not-namespace "*.Benchmark.Tests" in .github/actions/dotnet/action.yml); the
     // pre-commit hook runs it when staged changes affect it.
-    private const long MaximumAllocatedBytes = 4_000_000;
+    private const long MAXIMUM_ALLOCATED_BYTES = 4_000_000;
 
     public IniFileLoadBenchmarkTests(ITestOutputHelper output)
         : base(output) { }
@@ -26,6 +26,6 @@ public sealed class IniFileLoadBenchmarkTests : LoggingTestBase
 
         this.Output.WriteLine(logger.GetLog());
 
-        summary.AssertAllocationsAtMost(maximumBytes: MaximumAllocatedBytes);
+        summary.AssertAllocationsAtMost(maximumBytes: MAXIMUM_ALLOCATED_BYTES);
     }
 }

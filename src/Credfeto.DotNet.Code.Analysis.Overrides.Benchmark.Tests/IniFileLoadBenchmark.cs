@@ -14,7 +14,7 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Benchmark.Tests;
 )]
 public class IniFileLoadBenchmark
 {
-    private const int CommentLineCount = 2_000;
+    private const int COMMENT_LINE_COUNT = 2_000;
 
     private string _content = string.Empty;
 
@@ -23,7 +23,7 @@ public class IniFileLoadBenchmark
     {
         StringBuilder builder = new();
 
-        for (int i = 0; i < CommentLineCount; ++i)
+        for (int i = 0; i < COMMENT_LINE_COUNT; ++i)
         {
             builder.Append("; comment line ").Append(i).Append('\n');
         }
