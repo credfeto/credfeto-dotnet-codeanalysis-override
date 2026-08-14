@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,7 +59,7 @@ public static class IniFile
                 );
             }
 
-            settings.SetTrailingComments(context.OnEnd());
+            settings.SetTrailingComments(context.TakeComments());
 
             return settings;
         }
@@ -91,7 +92,7 @@ public static class IniFile
 
         if (IsSection(line: line, out string? newSection))
         {
-            currentSection = settings.CreateSection(sectionName: newSection, [.. context.OnSection()]);
+            currentSection = settings.CreateSection(sectionName: newSection, context.TakeComments());
 
             return currentSection;
         }
@@ -104,13 +105,13 @@ public static class IniFile
                     .CreateProperty(key)
                     .WithValue(value)
                     .WithOptionalLineComment(lineComment)
-                    .WithOptionalBlockComment(context.OnProperty())
+                    .WithOptionalBlockComment(context.TakeComments())
                     .Apply(),
                 ISettings globalSettings => globalSettings
                     .CreateProperty(key)
                     .WithValue(value)
                     .WithOptionalLineComment(lineComment)
-                    .WithOptionalBlockComment(context.OnProperty())
+                    .WithOptionalBlockComment(context.TakeComments())
                     .Apply(),
                 _ => throw new UnreachableException("Unsupported section type"),
             };
@@ -189,23 +190,15 @@ public static class IniFile
                 lines.Add(line);
             }
 
-            return Extract([.. lines]);
+            return Extract(CollectionsMarshal.AsSpan(lines));
         }
     }
 
     private sealed class ExtractContext
     {
-        private ImmutableArray<string> _commentLines;
+        private readonly ImmutableArray<string>.Builder _commentLines = ImmutableArray.CreateBuilder<string>();
 
-        private bool _commentStarted;
         private bool _lastLineWasBlank;
-
-        public ExtractContext()
-        {
-            this._lastLineWasBlank = false;
-            this._commentStarted = false;
-            this._commentLines = [];
-        }
 
         public void OnBlankLine()
         {
@@ -214,44 +207,19 @@ public static class IniFile
 
         public void OnComment(string comment)
         {
-            if (this._commentStarted && this._lastLineWasBlank)
+            if (this._commentLines.Count > 0 && this._lastLineWasBlank)
             {
-                this._commentLines = this._commentLines.Add(string.Empty);
+                this._commentLines.Add(string.Empty);
             }
 
-            this._commentStarted = true;
             this._lastLineWasBlank = false;
 
-            this._commentLines = this._commentLines.Add(comment.Parse());
+            this._commentLines.Add(comment.Parse());
         }
 
-        public IReadOnlyList<string> OnSection()
+        public IReadOnlyList<string> TakeComments()
         {
-            return this.CommonComments();
-        }
-
-        public IReadOnlyList<string> OnProperty()
-        {
-            return this.CommonComments();
-        }
-
-        public IReadOnlyList<string> OnEnd()
-        {
-            return this.CommonComments();
-        }
-
-        private IReadOnlyList<string> CommonComments()
-        {
-            try
-            {
-                return this._commentLines;
-            }
-            finally
-            {
-                this._lastLineWasBlank = false;
-                this._commentStarted = false;
-                this._commentLines = [];
-            }
+            return this._commentLines.DrainToImmutable();
         }
     }
 }

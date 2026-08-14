@@ -14,6 +14,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Added
 - Unit tests for Credfeto.DotNet.Code.Analysis.Overrides.Cmd
 - Increased code coverage to 100% for Credfeto.DotNet.Code.Analysis.Overrides
+- Benchmark regression test asserting linear allocation behaviour for IniFile parsing of large comment blocks
 ### Fixed
 - Fixed InternalsVisibleTo declared via csproj AssemblyAttribute item, which violated the MustNotUseAssemblyAttributeItems build check
 - ruleset command now exits non-zero when a changes-file rule is missing from the target ruleset
@@ -22,6 +23,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Changed
 - SDK - Updated DotNet SDK to 10.0.302
 - Drop net9.0 target framework support; target net10.0 only (#51)
+- IniFile parsing no longer accumulates comment lines with O(N^2) ImmutableArray copies, and Load(string) avoids a redundant line-buffer copy
 ### Deprecated
 ### Removed
 ### Deployment Changes

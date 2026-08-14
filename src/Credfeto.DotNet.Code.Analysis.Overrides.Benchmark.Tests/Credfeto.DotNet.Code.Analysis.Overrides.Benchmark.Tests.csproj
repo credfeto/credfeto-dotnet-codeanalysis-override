@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AnalysisLevel>latest</AnalysisLevel>
     <AnalysisMode>AllEnabledByDefault</AnalysisMode>
@@ -7,7 +7,7 @@
     <Company>Mark Ridgwell</Company>
     <Copyright>Mark Ridgwell</Copyright>
     <DebuggerSupport>true</DebuggerSupport>
-    <Description>Unit tests for Credfeto.DotNet.Code.Analysis.Overrides.Cmd</Description>
+    <Description>Dotnet code analys rule management utilities</Description>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
     <EnableMicrosoftExtensionsConfigurationBinderSourceGenerator>true</EnableMicrosoftExtensionsConfigurationBinderSourceGenerator>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
@@ -34,7 +34,8 @@
     <OutputType>Exe</OutputType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReleaseNotes>$(ReleaseNotes)</PackageReleaseNotes>
-    <Product>Code analysis rule manager tests</Product>
+    <PackageTags>Nuget;update;tool;packages</PackageTags>
+    <Product>Repository Update Tool</Product>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/credfeto/credfeto-dotnet-codeanalysis-override</RepositoryUrl>
     <RunAOTCompilation>false</RunAOTCompilation>
@@ -56,17 +57,14 @@
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-x5qj-9vmx-7g6g" />
     <!-- error NU1903: Warning As Error: Package 'System.Private.Uri' 4.3.0 has a known high severity vulnerability -->
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-xhfc-gr8f-ffwc" />
-    <!-- error NU1903: Warning As Error: Package 'System.Text.Json' 6.0.0 has a known high severity vulnerability -->
-    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-8g4q-xg66-9fp4" />
   </ItemGroup>
   <Import Project="$(SolutionDir)UnitTests.props" Condition="Exists('$(SolutionDir)UnitTests.props')"/>
   <ItemGroup>
-    <ProjectReference Include="..\Credfeto.DotNet.Code.Analysis.Overrides.Cmd\Credfeto.DotNet.Code.Analysis.Overrides.Cmd.csproj" />
+    <ProjectReference Include="..\Credfeto.DotNet.Code.Analysis.Overrides\Credfeto.DotNet.Code.Analysis.Overrides.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FunFair.Test.Common" Version="6.2.23.2204"/>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.5" />
-    <PackageReference Include="NSubstitute" Version="5.3.0" />
+
     <PackageReference Include="xunit.v3.mtp-v2" Version="3.2.2"/>
   </ItemGroup>
   <ItemGroup>
@@ -78,7 +76,6 @@
     <PackageReference Include="FunFair.Test.Source.Generator" Version="6.2.23.2204" PrivateAssets="All" ExcludeAssets="runtime"/>
     <PackageReference Include="Meziantou.Analyzer" Version="2.0.212" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.14.15" PrivateAssets="All" ExcludeAssets="runtime" />
-    <PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.17" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="Nullable.Extended.Analyzer" Version="1.15.6581" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="Philips.CodeAnalysis.DuplicateCodeAnalyzer" Version="1.6.4" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="Philips.CodeAnalysis.MaintainabilityAnalyzers" Version="1.8.0" PrivateAssets="All" ExcludeAssets="runtime" />

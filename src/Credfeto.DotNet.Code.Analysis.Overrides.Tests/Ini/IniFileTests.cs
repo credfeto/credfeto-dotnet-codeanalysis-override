@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -284,6 +285,34 @@ public sealed class IniFileTests : IntegrationTestBase
             File.Delete(sourceTempFile);
             File.Delete(destTempFile);
         }
+    }
+
+    [Fact]
+    public void LoadReturnsSettingsWithGlobalPropertyAndNamedSection()
+    {
+        const string content = "global = true\n[MySect]\nkey = val\n";
+
+        ISettings settings = IniFile.Load(content);
+
+        Assert.Equal(expected: "true", actual: settings.Get("global"));
+
+        INamedSection? section = settings.GetSection("MySect");
+        Assert.NotNull(section);
+        Assert.Equal(expected: "val", actual: section.Get("key"));
+    }
+
+    [Fact]
+    public void LoadPreservesBlankLineWithinCommentBlockBeforeProperty()
+    {
+        const string content = "; first\n\n; second\nkey = value\n";
+
+        ISettings settings = IniFile.Load(content);
+
+        IReadOnlyList<string> comments = settings.PropertyBlockComment("key");
+        Assert.Equal(expected: [" first", "", " second"], actual: comments);
+
+        ISettings reloaded = IniFile.Load(settings.Save());
+        Assert.Equal(expected: comments, actual: reloaded.PropertyBlockComment("key"));
     }
 
     [Fact]
