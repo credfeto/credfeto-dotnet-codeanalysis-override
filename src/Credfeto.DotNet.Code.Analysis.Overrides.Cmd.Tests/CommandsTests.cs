@@ -214,6 +214,34 @@ public sealed class CommandsTests : IntegrationTestBase
         }
     }
 
+    [Fact]
+    public async Task UpdateGlobalConfigAsync_WithPureAdditions_SavesConfig()
+    {
+        Commands commands = new(this.GetTypedLogger<Commands>());
+        CancellationToken cancellationToken = this.CancellationToken();
+        string changesFile = await WriteJsonTempAsync(
+            content: """[{"ruleSet":"TestAnalyzer","rule":"TEST002","state":"Warning","description":"Test Rule"}]""",
+            cancellationToken: cancellationToken
+        );
+        string configFile = await WriteTextTempAsync(
+            content: "dotnet_diagnostic.OTHER001.severity = suggestion\n",
+            cancellationToken: cancellationToken
+        );
+
+        try
+        {
+            await commands.UpdateGlobalConfigAsync(rulesetFileName: configFile, changesFileName: changesFile);
+
+            string saved = await File.ReadAllTextAsync(path: configFile, cancellationToken: cancellationToken);
+            Assert.Contains("dotnet_diagnostic.TEST002.severity", saved, StringComparison.Ordinal);
+        }
+        finally
+        {
+            DeleteIfExists(changesFile);
+            DeleteIfExists(configFile);
+        }
+    }
+
     private static async ValueTask<string> WriteJsonTempAsync(string content, CancellationToken cancellationToken)
     {
         string path = Path.GetTempFileName();

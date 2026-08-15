@@ -37,14 +37,14 @@ public sealed class IniUpdaterTests : IntegrationTestBase
             logger: this._logger
         );
 
-        Assert.False(changed, "Should not report a change when adding a new key");
+        Assert.True(changed, "Should report a change when adding a new key");
 
         string? value = settings.Get("dotnet_diagnostic.MA0001.severity");
         Assert.Equal(expected: expectedState, actual: value);
     }
 
     [Fact]
-    public void ChangeValueReturnsFalseWhenKeyNotPresent()
+    public void ChangeValueReturnsTrueWhenKeyNotPresent()
     {
         ISettings settings = IniFile.Create();
 
@@ -56,7 +56,7 @@ public sealed class IniUpdaterTests : IntegrationTestBase
             logger: this._logger
         );
 
-        Assert.False(changed, "Should return false when key is not present");
+        Assert.True(changed, "Should return true when key is not present");
     }
 
     [Fact]
@@ -145,7 +145,7 @@ public sealed class IniUpdaterTests : IntegrationTestBase
             logger: this._logger
         );
 
-        Assert.False(changed, "Should return false when adding a new key");
+        Assert.True(changed, "Should return true when adding a new key");
 
         string? value = settings.Get("dotnet_diagnostic.CS0001.severity");
         Assert.NotNull(value);
@@ -164,7 +164,7 @@ public sealed class IniUpdaterTests : IntegrationTestBase
             logger: this._logger
         );
 
-        Assert.False(changed, "Should return false when adding a new key");
+        Assert.True(changed, "Should return true when adding a new key");
 
         string saved = settings.Save();
         Assert.Contains("MA0001", saved, StringComparison.Ordinal);
