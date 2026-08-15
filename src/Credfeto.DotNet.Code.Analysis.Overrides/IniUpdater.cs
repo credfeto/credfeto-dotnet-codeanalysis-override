@@ -7,7 +7,14 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides;
 
 public static class IniUpdater
 {
-    public static bool ChangeValue(this ISection section, string ruleSet, string rule, string name, string newState, ILogger logger)
+    public static bool ChangeValue(
+        this ISection section,
+        string ruleSet,
+        string rule,
+        string name,
+        string newState,
+        ILogger logger
+    )
     {
         string key = $"dotnet_diagnostic.{rule}.severity";
         string state = ConvertState(newState);
@@ -22,7 +29,7 @@ public static class IniUpdater
             section.PropertyBlockComment(key: key, [$"{rule}: {name}"]);
             section.PropertyLineComment(key: key, $"Ruleset: {ruleSet}");
 
-            return false;
+            return true;
         }
 
         if (StringComparer.Ordinal.Equals(x: existingValue, y: state))
@@ -34,7 +41,13 @@ public static class IniUpdater
 
         section.Set(key: key, value: state);
 
-        logger.RuleChanged(ruleSet: ruleSet, rule: rule, name: name, existingSetting: existingValue, newSetting: newState);
+        logger.RuleChanged(
+            ruleSet: ruleSet,
+            rule: rule,
+            name: name,
+            existingSetting: existingValue,
+            newSetting: newState
+        );
 
         return true;
     }
@@ -47,7 +60,11 @@ public static class IniUpdater
             "WARNING" => "suggestion",
             "INFO" => "suggestion",
             "NONE" => "none",
-            _ => throw new ArgumentOutOfRangeException(nameof(newState), actualValue: newState, message: "Unsupported state")
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(newState),
+                actualValue: newState,
+                message: "Unsupported state"
+            ),
         };
     }
 }
