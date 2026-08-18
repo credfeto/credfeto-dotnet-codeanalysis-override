@@ -3,6 +3,8 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cocona;
+using Cocona.Application;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using FunFair.Test.Common;
 using Xunit;
@@ -25,7 +27,8 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: "non-existent.ruleset",
-                changesFileName: changesFile
+                changesFileName: changesFile,
+                contextAccessor: new NullCoconaAppContextAccessor()
             );
 
             Assert.Equal(ExitCodes.Success, exitCode);
@@ -54,7 +57,8 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: rulesetFile,
-                changesFileName: changesFile
+                changesFileName: changesFile,
+                contextAccessor: new NullCoconaAppContextAccessor()
             );
 
             Assert.Equal(ExitCodes.Error, exitCode);
@@ -84,7 +88,8 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: rulesetFile,
-                changesFileName: changesFile
+                changesFileName: changesFile,
+                contextAccessor: new NullCoconaAppContextAccessor()
             );
 
             Assert.Equal(ExitCodes.Success, exitCode);
@@ -122,7 +127,8 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: rulesetFile,
-                changesFileName: changesFile
+                changesFileName: changesFile,
+                contextAccessor: new NullCoconaAppContextAccessor()
             );
 
             Assert.Equal(ExitCodes.Error, exitCode);
@@ -148,7 +154,8 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             await commands.UpdateGlobalConfigAsync(
                 rulesetFileName: "non-existent.globalconfig",
-                changesFileName: changesFile
+                changesFileName: changesFile,
+                contextAccessor: new NullCoconaAppContextAccessor()
             );
         }
         finally
@@ -174,7 +181,11 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateGlobalConfigAsync(rulesetFileName: configFile, changesFileName: changesFile);
+            await commands.UpdateGlobalConfigAsync(
+                rulesetFileName: configFile,
+                changesFileName: changesFile,
+                contextAccessor: new NullCoconaAppContextAccessor()
+            );
 
             DateTime afterTest = File.GetLastWriteTimeUtc(configFile);
             Assert.Equal(expected: beforeTest, actual: afterTest);
@@ -202,7 +213,11 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateGlobalConfigAsync(rulesetFileName: configFile, changesFileName: changesFile);
+            await commands.UpdateGlobalConfigAsync(
+                rulesetFileName: configFile,
+                changesFileName: changesFile,
+                contextAccessor: new NullCoconaAppContextAccessor()
+            );
 
             string saved = await File.ReadAllTextAsync(path: configFile, cancellationToken: cancellationToken);
             Assert.Contains("error", saved, StringComparison.Ordinal);
@@ -230,7 +245,11 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateGlobalConfigAsync(rulesetFileName: configFile, changesFileName: changesFile);
+            await commands.UpdateGlobalConfigAsync(
+                rulesetFileName: configFile,
+                changesFileName: changesFile,
+                contextAccessor: new NullCoconaAppContextAccessor()
+            );
 
             string saved = await File.ReadAllTextAsync(path: configFile, cancellationToken: cancellationToken);
             Assert.Contains("dotnet_diagnostic.TEST002.severity", saved, StringComparison.Ordinal);
@@ -287,5 +306,10 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             File.Delete(path);
         }
+    }
+
+    private sealed class NullCoconaAppContextAccessor : ICoconaAppContextAccessor
+    {
+        public CoconaAppContext? Current { get; set; }
     }
 }
