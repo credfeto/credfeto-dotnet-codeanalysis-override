@@ -38,7 +38,7 @@ public sealed class RuleSetTests : IntegrationTestBase
                 cancellationToken: cancellationToken
             );
 
-            XmlDocument doc = await RuleSet.LoadAsync(tempFile);
+            XmlDocument doc = await RuleSet.LoadAsync(fileName: tempFile, cancellationToken: cancellationToken);
 
             Assert.NotNull(doc);
             XmlElement? element =
@@ -71,7 +71,7 @@ public sealed class RuleSetTests : IntegrationTestBase
                 """
             );
 
-            await RuleSet.SaveAsync(project: tempFile, doc: doc);
+            await RuleSet.SaveAsync(project: tempFile, doc: doc, cancellationToken: cancellationToken);
 
             Assert.True(File.Exists(tempFile), "File should exist after SaveAsync");
             string content = await File.ReadAllTextAsync(path: tempFile, cancellationToken: cancellationToken);
@@ -107,8 +107,8 @@ public sealed class RuleSetTests : IntegrationTestBase
                 cancellationToken: cancellationToken
             );
 
-            XmlDocument doc = await RuleSet.LoadAsync(sourceTempFile);
-            await RuleSet.SaveAsync(project: destTempFile, doc: doc);
+            XmlDocument doc = await RuleSet.LoadAsync(fileName: sourceTempFile, cancellationToken: cancellationToken);
+            await RuleSet.SaveAsync(project: destTempFile, doc: doc, cancellationToken: cancellationToken);
 
             string saved = await File.ReadAllTextAsync(path: destTempFile, cancellationToken: cancellationToken);
             Assert.Contains("AX001", saved, StringComparison.Ordinal);

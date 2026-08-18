@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Cocona;
+using Cocona.Application;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.LoggingExtensions;
 using Credfeto.DotNet.Code.Analysis.Overrides.Helpers;
@@ -25,7 +26,6 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Cmd;
 )]
 internal sealed class Commands
 {
-    private static readonly CancellationToken CancellationToken = CancellationToken.None;
     private readonly ILogger<Commands> _logger;
 
     [SuppressMessage(
@@ -42,10 +42,12 @@ internal sealed class Commands
     [SuppressMessage(category: "ReSharper", checkId: "UnusedMember.Global", Justification = "Used by Cocona")]
     public async Task<int> UpdateRulesetAsync(
         [Option(name: "ruleset", ['r'], Description = "ruleset file to change")] string rulesetFileName,
-        [Option(name: "changes", ['c'], Description = "file of changes to apply")] string changesFileName
+        [Option(name: "changes", ['c'], Description = "file of changes to apply")] string changesFileName,
+        [FromService] ICoconaAppContextAccessor contextAccessor
     )
     {
-        IReadOnlyList<RuleChange> changes = await ChangeSet.LoadAsync(changesFileName, CancellationToken);
+        CancellationToken cancellationToken = GetCancellationToken(contextAccessor);
+        IReadOnlyList<RuleChange> changes = await ChangeSet.LoadAsync(changesFileName, cancellationToken);
 
         if (changes is [])
         {
@@ -56,7 +58,7 @@ internal sealed class Commands
 
         bool changed = false;
         bool ruleNotPresent = false;
-        XmlDocument ruleSet = await RuleSet.LoadAsync(rulesetFileName);
+        XmlDocument ruleSet = await RuleSet.LoadAsync(fileName: rulesetFileName, cancellationToken: cancellationToken);
 
         foreach (RuleChange change in changes)
         {
@@ -74,7 +76,7 @@ internal sealed class Commands
 
         if (changed)
         {
-            await RuleSet.SaveAsync(rulesetFileName, ruleSet);
+            await RuleSet.SaveAsync(project: rulesetFileName, doc: ruleSet, cancellationToken: cancellationToken);
         }
 
         return ruleNotPresent ? ExitCodes.Error : ExitCodes.Success;
@@ -84,12 +86,14 @@ internal sealed class Commands
     [SuppressMessage(category: "ReSharper", checkId: "UnusedMember.Global", Justification = "Used by Cocona")]
     public async Task UpdateGlobalConfigAsync(
         [Option(name: "ruleset", ['r'], Description = "ruleset file to change")] string rulesetFileName,
-        [Option(name: "changes", ['c'], Description = "file of changes to apply")] string changesFileName
+        [Option(name: "changes", ['c'], Description = "file of changes to apply")] string changesFileName,
+        [FromService] ICoconaAppContextAccessor contextAccessor
     )
     {
+        CancellationToken cancellationToken = GetCancellationToken(contextAccessor);
         IReadOnlyList<RuleChange> changes = await ChangeSet.LoadAsync(
             changesFileName: changesFileName,
-            cancellationToken: CancellationToken
+            cancellationToken: cancellationToken
         );
 
         if (changes is [])
@@ -100,7 +104,7 @@ internal sealed class Commands
         }
 
         bool changed = false;
-        ISettings ruleSet = await IniFile.LoadAsync(fileName: rulesetFileName, cancellationToken: CancellationToken);
+        ISettings ruleSet = await IniFile.LoadAsync(fileName: rulesetFileName, cancellationToken: cancellationToken);
 
         foreach (RuleChange change in changes)
         {
@@ -117,7 +121,12 @@ internal sealed class Commands
 
         if (changed)
         {
-            await IniFile.SaveAsync(fileName: rulesetFileName, settings: ruleSet, cancellationToken: CancellationToken);
+            await IniFile.SaveAsync(fileName: rulesetFileName, settings: ruleSet, cancellationToken: cancellationToken);
         }
+    }
+
+    private static CancellationToken GetCancellationToken(ICoconaAppContextAccessor contextAccessor)
+    {
+        return contextAccessor.Current?.CancellationToken ?? CancellationToken.None;
     }
 }
