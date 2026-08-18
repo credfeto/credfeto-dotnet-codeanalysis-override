@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -6,9 +7,11 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Helpers;
 
 public static class RuleSet
 {
-    public static async ValueTask<XmlDocument> LoadAsync(string fileName)
+    public static async ValueTask<XmlDocument> LoadAsync(string fileName, CancellationToken cancellationToken)
     {
-        await using (Stream stream = File.OpenRead(fileName))
+        byte[] bytes = await File.ReadAllBytesAsync(path: fileName, cancellationToken: cancellationToken);
+
+        await using (MemoryStream stream = new(bytes))
         {
             XmlDocument doc = new();
             doc.Load(stream);
@@ -17,21 +20,29 @@ public static class RuleSet
         }
     }
 
-    public static async ValueTask SaveAsync(string project, XmlDocument doc)
+    public static async ValueTask SaveAsync(string project, XmlDocument doc, CancellationToken cancellationToken)
     {
         XmlWriterSettings settings = new()
         {
+            Async = true,
             Indent = true,
             IndentChars = "  ",
             NewLineOnAttributes = false,
             OmitXmlDeclaration = true,
-            Async = true,
         };
 
-        await using (XmlWriter xmlWriter = XmlWriter.Create(outputFileName: project, settings: settings))
+        byte[] bytes;
+
+        await using (MemoryStream stream = new())
         {
-            doc.Save(xmlWriter);
-            await ValueTask.CompletedTask;
+            await using (XmlWriter xmlWriter = XmlWriter.Create(output: stream, settings: settings))
+            {
+                doc.Save(xmlWriter);
+            }
+
+            bytes = stream.ToArray();
         }
+
+        await File.WriteAllBytesAsync(path: project, bytes: bytes, cancellationToken: cancellationToken);
     }
 }
