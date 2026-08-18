@@ -21,6 +21,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - ruleset command now rejects unsupported Action values in changes files instead of writing them verbatim into the .ruleset file
 - IniFile load/save round-trip no longer silently drops comments trailing the last property or section in a file
 - globalconfig command now saves newly added rules instead of silently discarding them
+- RuleSet.LoadAsync/SaveAsync now perform genuine async file I/O and CancellationToken is threaded through the update commands
 ### Changed
 - SDK - Updated DotNet SDK to 10.0.302
 - Drop net9.0 target framework support; target net10.0 only (#51)
