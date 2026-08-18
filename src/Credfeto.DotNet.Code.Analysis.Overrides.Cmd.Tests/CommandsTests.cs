@@ -13,6 +13,8 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests;
 
 public sealed class CommandsTests : IntegrationTestBase
 {
+    private static readonly ICoconaAppContextAccessor NullContextAccessor = new NullCoconaAppContextAccessor();
+
     public CommandsTests(ITestOutputHelper output)
         : base(output) { }
 
@@ -28,7 +30,7 @@ public sealed class CommandsTests : IntegrationTestBase
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: "non-existent.ruleset",
                 changesFileName: changesFile,
-                contextAccessor: new NullCoconaAppContextAccessor()
+                contextAccessor: NullContextAccessor
             );
 
             Assert.Equal(ExitCodes.Success, exitCode);
@@ -58,7 +60,7 @@ public sealed class CommandsTests : IntegrationTestBase
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: rulesetFile,
                 changesFileName: changesFile,
-                contextAccessor: new NullCoconaAppContextAccessor()
+                contextAccessor: NullContextAccessor
             );
 
             Assert.Equal(ExitCodes.Error, exitCode);
@@ -89,7 +91,7 @@ public sealed class CommandsTests : IntegrationTestBase
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: rulesetFile,
                 changesFileName: changesFile,
-                contextAccessor: new NullCoconaAppContextAccessor()
+                contextAccessor: NullContextAccessor
             );
 
             Assert.Equal(ExitCodes.Success, exitCode);
@@ -128,7 +130,7 @@ public sealed class CommandsTests : IntegrationTestBase
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: rulesetFile,
                 changesFileName: changesFile,
-                contextAccessor: new NullCoconaAppContextAccessor()
+                contextAccessor: NullContextAccessor
             );
 
             Assert.Equal(ExitCodes.Error, exitCode);
@@ -155,7 +157,7 @@ public sealed class CommandsTests : IntegrationTestBase
             await commands.UpdateGlobalConfigAsync(
                 rulesetFileName: "non-existent.globalconfig",
                 changesFileName: changesFile,
-                contextAccessor: new NullCoconaAppContextAccessor()
+                contextAccessor: NullContextAccessor
             );
         }
         finally
@@ -184,7 +186,7 @@ public sealed class CommandsTests : IntegrationTestBase
             await commands.UpdateGlobalConfigAsync(
                 rulesetFileName: configFile,
                 changesFileName: changesFile,
-                contextAccessor: new NullCoconaAppContextAccessor()
+                contextAccessor: NullContextAccessor
             );
 
             DateTime afterTest = File.GetLastWriteTimeUtc(configFile);
@@ -216,7 +218,7 @@ public sealed class CommandsTests : IntegrationTestBase
             await commands.UpdateGlobalConfigAsync(
                 rulesetFileName: configFile,
                 changesFileName: changesFile,
-                contextAccessor: new NullCoconaAppContextAccessor()
+                contextAccessor: NullContextAccessor
             );
 
             string saved = await File.ReadAllTextAsync(path: configFile, cancellationToken: cancellationToken);
@@ -248,7 +250,7 @@ public sealed class CommandsTests : IntegrationTestBase
             await commands.UpdateGlobalConfigAsync(
                 rulesetFileName: configFile,
                 changesFileName: changesFile,
-                contextAccessor: new NullCoconaAppContextAccessor()
+                contextAccessor: NullContextAccessor
             );
 
             string saved = await File.ReadAllTextAsync(path: configFile, cancellationToken: cancellationToken);
