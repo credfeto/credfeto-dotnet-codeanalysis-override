@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Cocona;
 using Cocona.Application;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using FunFair.Test.Common;
@@ -13,7 +12,7 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests;
 
 public sealed class CommandsTests : IntegrationTestBase
 {
-    private static readonly ICoconaAppContextAccessor NullContextAccessor = new NullCoconaAppContextAccessor();
+    private static readonly ICoconaAppContextAccessor NullContextAccessor = new CoconaAppContextAccessor();
 
     public CommandsTests(ITestOutputHelper output)
         : base(output) { }
@@ -308,10 +307,5 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             File.Delete(path);
         }
-    }
-
-    private sealed class NullCoconaAppContextAccessor : ICoconaAppContextAccessor
-    {
-        public CoconaAppContext? Current { get; set; }
     }
 }
