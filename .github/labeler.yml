@@ -14,6 +14,8 @@
   - any: ['src/**/*.json', '!src/global.json']
 "credfeto-dotnet-code-analysis-overrides":
   - any: ['src/Credfeto.DotNet.Code.Analysis.Overrides/**/*']
+"credfeto-dotnet-code-analysis-overrides-benchmark-tests":
+  - any: ['src/Credfeto.DotNet.Code.Analysis.Overrides.Benchmark.Tests/**/*']
 "credfeto-dotnet-code-analysis-overrides-cmd":
   - any: ['src/Credfeto.DotNet.Code.Analysis.Overrides.Cmd/**/*']
 "credfeto-dotnet-code-analysis-overrides-cmd-tests":
