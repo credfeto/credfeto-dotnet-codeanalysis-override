@@ -1,9 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cocona;
 using Cocona.Application;
+using Cocona.Command;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using FunFair.Test.Common;
 using Xunit;
@@ -145,6 +148,33 @@ public sealed class CommandsTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task UpdateRulesetAsync_WithCancelledContextCancellationToken_ThrowsOperationCanceledException()
+    {
+        Commands commands = new(this.GetTypedLogger<Commands>());
+        CancellationToken cancellationToken = this.CancellationToken();
+        string changesFile = await WriteJsonTempAsync(content: "[]", cancellationToken: cancellationToken);
+
+        try
+        {
+            using CancellationTokenSource cancelledSource = new();
+            await cancelledSource.CancelAsync();
+            ICoconaAppContextAccessor contextAccessor = CreateContextAccessor(cancelledSource.Token);
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                commands.UpdateRulesetAsync(
+                    rulesetFileName: "non-existent.ruleset",
+                    changesFileName: changesFile,
+                    contextAccessor: contextAccessor
+                )
+            );
+        }
+        finally
+        {
+            DeleteIfExists(changesFile);
+        }
+    }
+
+    [Fact]
     public async Task UpdateGlobalConfigAsync_WithEmptyChanges_ReturnsWithoutReadingConfig()
     {
         Commands commands = new(this.GetTypedLogger<Commands>());
@@ -260,6 +290,30 @@ public sealed class CommandsTests : IntegrationTestBase
             DeleteIfExists(changesFile);
             DeleteIfExists(configFile);
         }
+    }
+
+    private static ICoconaAppContextAccessor CreateContextAccessor(in CancellationToken cancellationToken)
+    {
+        MethodInfo method =
+            typeof(object).GetMethod(nameof(object.ToString))
+            ?? throw new InvalidOperationException("object.ToString() method not found via reflection");
+        CommandDescriptor descriptor = new(
+            methodInfo: method,
+            target: null,
+            name: "test",
+            aliases: [],
+            description: string.Empty,
+            metadata: [],
+            parameters: [],
+            options: [],
+            arguments: [],
+            overloads: [],
+            optionLikeCommands: [],
+            flags: CommandFlags.None,
+            subCommands: null
+        );
+
+        return new CoconaAppContextAccessor { Current = new CoconaAppContext(descriptor, cancellationToken) };
     }
 
     private static async ValueTask<string> WriteJsonTempAsync(string content, CancellationToken cancellationToken)
