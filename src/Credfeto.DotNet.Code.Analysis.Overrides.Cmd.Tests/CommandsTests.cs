@@ -1,8 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Cocona;
+using Cocona.Application;
+using Cocona.Command;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using FunFair.Test.Common;
 using Xunit;
@@ -11,6 +15,8 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests;
 
 public sealed class CommandsTests : IntegrationTestBase
 {
+    private static readonly ICoconaAppContextAccessor NullContextAccessor = new CoconaAppContextAccessor();
+
     public CommandsTests(ITestOutputHelper output)
         : base(output) { }
 
@@ -25,7 +31,8 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: "non-existent.ruleset",
-                changesFileName: changesFile
+                changesFileName: changesFile,
+                contextAccessor: NullContextAccessor
             );
 
             Assert.Equal(ExitCodes.Success, exitCode);
@@ -54,7 +61,8 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: rulesetFile,
-                changesFileName: changesFile
+                changesFileName: changesFile,
+                contextAccessor: NullContextAccessor
             );
 
             Assert.Equal(ExitCodes.Error, exitCode);
@@ -84,7 +92,8 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: rulesetFile,
-                changesFileName: changesFile
+                changesFileName: changesFile,
+                contextAccessor: NullContextAccessor
             );
 
             Assert.Equal(ExitCodes.Success, exitCode);
@@ -122,7 +131,8 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             int exitCode = await commands.UpdateRulesetAsync(
                 rulesetFileName: rulesetFile,
-                changesFileName: changesFile
+                changesFileName: changesFile,
+                contextAccessor: NullContextAccessor
             );
 
             Assert.Equal(ExitCodes.Error, exitCode);
@@ -138,6 +148,33 @@ public sealed class CommandsTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task UpdateRulesetAsync_WithCancelledContextCancellationToken_ThrowsOperationCanceledException()
+    {
+        Commands commands = new(this.GetTypedLogger<Commands>());
+        CancellationToken cancellationToken = this.CancellationToken();
+        string changesFile = await WriteJsonTempAsync(content: "[]", cancellationToken: cancellationToken);
+
+        try
+        {
+            using CancellationTokenSource cancelledSource = new();
+            await cancelledSource.CancelAsync();
+            ICoconaAppContextAccessor contextAccessor = CreateContextAccessor(cancelledSource.Token);
+
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+                commands.UpdateRulesetAsync(
+                    rulesetFileName: "non-existent.ruleset",
+                    changesFileName: changesFile,
+                    contextAccessor: contextAccessor
+                )
+            );
+        }
+        finally
+        {
+            DeleteIfExists(changesFile);
+        }
+    }
+
+    [Fact]
     public async Task UpdateGlobalConfigAsync_WithEmptyChanges_ReturnsWithoutReadingConfig()
     {
         Commands commands = new(this.GetTypedLogger<Commands>());
@@ -148,7 +185,8 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             await commands.UpdateGlobalConfigAsync(
                 rulesetFileName: "non-existent.globalconfig",
-                changesFileName: changesFile
+                changesFileName: changesFile,
+                contextAccessor: NullContextAccessor
             );
         }
         finally
@@ -174,7 +212,11 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateGlobalConfigAsync(rulesetFileName: configFile, changesFileName: changesFile);
+            await commands.UpdateGlobalConfigAsync(
+                rulesetFileName: configFile,
+                changesFileName: changesFile,
+                contextAccessor: NullContextAccessor
+            );
 
             DateTime afterTest = File.GetLastWriteTimeUtc(configFile);
             Assert.Equal(expected: beforeTest, actual: afterTest);
@@ -202,7 +244,11 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateGlobalConfigAsync(rulesetFileName: configFile, changesFileName: changesFile);
+            await commands.UpdateGlobalConfigAsync(
+                rulesetFileName: configFile,
+                changesFileName: changesFile,
+                contextAccessor: NullContextAccessor
+            );
 
             string saved = await File.ReadAllTextAsync(path: configFile, cancellationToken: cancellationToken);
             Assert.Contains("error", saved, StringComparison.Ordinal);
@@ -230,7 +276,11 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateGlobalConfigAsync(rulesetFileName: configFile, changesFileName: changesFile);
+            await commands.UpdateGlobalConfigAsync(
+                rulesetFileName: configFile,
+                changesFileName: changesFile,
+                contextAccessor: NullContextAccessor
+            );
 
             string saved = await File.ReadAllTextAsync(path: configFile, cancellationToken: cancellationToken);
             Assert.Contains("dotnet_diagnostic.TEST002.severity", saved, StringComparison.Ordinal);
@@ -240,6 +290,30 @@ public sealed class CommandsTests : IntegrationTestBase
             DeleteIfExists(changesFile);
             DeleteIfExists(configFile);
         }
+    }
+
+    private static ICoconaAppContextAccessor CreateContextAccessor(in CancellationToken cancellationToken)
+    {
+        MethodInfo method =
+            typeof(object).GetMethod(nameof(object.ToString))
+            ?? throw new InvalidOperationException("object.ToString() method not found via reflection");
+        CommandDescriptor descriptor = new(
+            methodInfo: method,
+            target: null,
+            name: "test",
+            aliases: [],
+            description: string.Empty,
+            metadata: [],
+            parameters: [],
+            options: [],
+            arguments: [],
+            overloads: [],
+            optionLikeCommands: [],
+            flags: CommandFlags.None,
+            subCommands: null
+        );
+
+        return new CoconaAppContextAccessor { Current = new CoconaAppContext(descriptor, cancellationToken) };
     }
 
     private static async ValueTask<string> WriteJsonTempAsync(string content, CancellationToken cancellationToken)
