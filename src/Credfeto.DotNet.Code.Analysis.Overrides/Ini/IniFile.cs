@@ -96,10 +96,7 @@ public static class IniFile
 
             // Repeating a section header is legal (e.g. the same editorconfig glob twice) and is
             // merged into the existing section rather than rejected, matching real-world parsers.
-            currentSection =
-                settings.GetSection(newSection) ?? settings.CreateSection(sectionName: newSection, comments);
-
-            return currentSection;
+            return settings.GetSection(newSection) ?? settings.CreateSection(sectionName: newSection, comments);
         }
 
         if (IsProperty(line: line, out string? key, out string? value, out string? lineComment))
