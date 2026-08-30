@@ -127,33 +127,30 @@ public static class IniFile
         // A repeated key within a section is legal (e.g. the same editorconfig rule set twice)
         // and is last-wins, matching real-world parsers, rather than rejected. Programmatic
         // creation via CreateProperty still throws on a duplicate key.
-        if (currentSection.Get(key) is not null)
-        {
-            return ReplaceProperty(
+        return currentSection.Get(key) is not null
+            ? ReplaceProperty(
                 section: currentSection,
                 key: key,
                 value: value,
                 lineComment: lineComment,
                 blockComment: blockComment
-            );
-        }
-
-        return currentSection switch
-        {
-            INamedSection namedSection => namedSection
-                .CreateProperty(key)
-                .WithValue(value)
-                .WithOptionalLineComment(lineComment)
-                .WithOptionalBlockComment(blockComment)
-                .Apply(),
-            ISettings globalSettings => globalSettings
-                .CreateProperty(key)
-                .WithValue(value)
-                .WithOptionalLineComment(lineComment)
-                .WithOptionalBlockComment(blockComment)
-                .Apply(),
-            _ => throw new UnreachableException("Unsupported section type"),
-        };
+            )
+            : currentSection switch
+            {
+                INamedSection namedSection => namedSection
+                    .CreateProperty(key)
+                    .WithValue(value)
+                    .WithOptionalLineComment(lineComment)
+                    .WithOptionalBlockComment(blockComment)
+                    .Apply(),
+                ISettings globalSettings => globalSettings
+                    .CreateProperty(key)
+                    .WithValue(value)
+                    .WithOptionalLineComment(lineComment)
+                    .WithOptionalBlockComment(blockComment)
+                    .Apply(),
+                _ => throw new UnreachableException("Unsupported section type"),
+            };
     }
 
     private static ISection ReplaceProperty(
