@@ -94,10 +94,12 @@ public static class IniFile
         {
             // Repeating a section header is legal (e.g. the same editorconfig glob twice) and is
             // merged into the existing section rather than rejected, matching real-world parsers.
-            // Comments are only drained from the buffer when a new section is actually created,
-            // since a merge keeps the pre-existing section's comments and discards this occurrence's.
-            return settings.GetSection(newSection)
-                ?? settings.CreateSection(sectionName: newSection, context.TakeComments());
+            // The buffer is always drained here, whether or not a new section is created, so that
+            // a merge discards this occurrence's comments instead of leaking them into whatever is
+            // parsed next.
+            IReadOnlyList<string> comments = context.TakeComments();
+
+            return settings.GetSection(newSection) ?? settings.CreateSection(sectionName: newSection, comments);
         }
 
         if (IsProperty(line: line, out string? key, out string? value, out string? lineComment))

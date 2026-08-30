@@ -349,6 +349,18 @@ public sealed class IniFileTests : IntegrationTestBase
         Assert.Equal(expected: "b", actual: section.Get("key2"));
     }
 
+    [Fact]
+    public static void LoadDiscardsCommentBeforeDuplicateSectionHeaderInsteadOfLeakingToNextProperty()
+    {
+        const string content = "[MySect]\nkey1 = a\n; note\n[MySect]\nkey2 = b\n";
+
+        ISettings settings = IniFile.Load(content);
+
+        INamedSection? section = settings.GetSection("MySect");
+        Assert.NotNull(section);
+        Assert.Equal(expected: [], actual: section.PropertyBlockComment("key2"));
+    }
+
     [Theory]
     [InlineData("key = val#ue\n", "val#ue")]
     [InlineData("key = val;ue\n", "val;ue")]
