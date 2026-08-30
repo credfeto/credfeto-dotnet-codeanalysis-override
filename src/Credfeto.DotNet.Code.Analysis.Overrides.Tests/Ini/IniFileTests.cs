@@ -361,6 +361,51 @@ public sealed class IniFileTests : IntegrationTestBase
         Assert.Equal(expected: [], actual: section.PropertyBlockComment("key2"));
     }
 
+    [Fact]
+    public static void LoadTakesLastValueForDuplicateKeyInGlobalSectionInsteadOfThrowing()
+    {
+        const string content = "key = a\nkey = b\n";
+
+        ISettings settings = IniFile.Load(content);
+
+        Assert.Equal(expected: "b", actual: settings.Get("key"));
+    }
+
+    [Fact]
+    public static void LoadTakesLastValueForDuplicateKeyInNamedSectionInsteadOfThrowing()
+    {
+        const string content = "[MySect]\nkey = a\nkey = b\n";
+
+        ISettings settings = IniFile.Load(content);
+
+        INamedSection? section = settings.GetSection("MySect");
+        Assert.NotNull(section);
+        Assert.Equal(expected: "b", actual: section.Get("key"));
+    }
+
+    [Fact]
+    public static void LoadTakesLastValueForDuplicateKeyAcrossMergedDuplicateSectionHeaders()
+    {
+        const string content = "[MySect]\nkey = a\n[MySect]\nkey = b\n";
+
+        ISettings settings = IniFile.Load(content);
+
+        INamedSection? section = settings.GetSection("MySect");
+        Assert.NotNull(section);
+        Assert.Equal(expected: "b", actual: section.Get("key"));
+    }
+
+    [Fact]
+    public static void RoundTripLoadAndSaveTakesLastValueForDuplicateKey()
+    {
+        const string content = "key = a\nkey = b\n";
+
+        ISettings settings = IniFile.Load(content);
+        ISettings reloaded = IniFile.Load(settings.Save());
+
+        Assert.Equal(expected: "b", actual: reloaded.Get("key"));
+    }
+
     [Theory]
     [InlineData("key = val#ue\n", "val#ue")]
     [InlineData("key = val;ue\n", "val;ue")]
