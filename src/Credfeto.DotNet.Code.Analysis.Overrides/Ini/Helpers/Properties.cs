@@ -16,7 +16,12 @@ internal static class Properties
 
     public static bool IsInvalidPropertyValue([NotNullWhen(false)] string? value)
     {
+        if (value is null)
+        {
+            return true;
+        }
+
         // Empty is a valid value (e.g. "key =" in an editorconfig); whitespace-only is not.
-        return value is null || value.Length > 0 && string.IsNullOrWhiteSpace(value);
+        return value.Length > 0 && string.IsNullOrWhiteSpace(value);
     }
 }
