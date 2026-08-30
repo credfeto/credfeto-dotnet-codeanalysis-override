@@ -95,14 +95,26 @@ internal sealed class Settings : ISettings
 
     public INamedSection CreateSection(string sectionName, in IReadOnlyList<string> comments)
     {
-        if (Sections.IsInvalidSectionName(sectionName))
-        {
-            return Raise.InvalidSectionName();
-        }
-
         if (this.NamedSections.ContainsKey(sectionName))
         {
             return Raise.SectionAlreadyExists();
+        }
+
+        return this.CreateSectionCore(sectionName: sectionName, comments: comments);
+    }
+
+    internal INamedSection GetOrCreateSection(string sectionName, Func<IReadOnlyList<string>> commentsFactory)
+    {
+        return this.NamedSections.TryGetValue(key: sectionName, out Section? section)
+            ? section
+            : this.CreateSectionCore(sectionName: sectionName, comments: commentsFactory());
+    }
+
+    private INamedSection CreateSectionCore(string sectionName, in IReadOnlyList<string> comments)
+    {
+        if (Sections.IsInvalidSectionName(sectionName))
+        {
+            return Raise.InvalidSectionName();
         }
 
         Section section = new(

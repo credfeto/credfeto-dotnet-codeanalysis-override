@@ -104,12 +104,7 @@ public static class PropertyBuilder
 
         public TSection Apply()
         {
-            if (this._value is null)
-            {
-                return InvalidPropertyValue();
-            }
-
-            if (this._value.Length > 0 && string.IsNullOrWhiteSpace(this._value))
+            if (Properties.IsInvalidPropertyValue(this._value))
             {
                 return InvalidPropertyValue();
             }
