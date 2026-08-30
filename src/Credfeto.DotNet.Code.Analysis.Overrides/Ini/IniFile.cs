@@ -96,7 +96,8 @@ public static class IniFile
             // merged into the existing section rather than rejected, matching real-world parsers.
             // Comments are only drained from the buffer when a new section is actually created,
             // since a merge keeps the pre-existing section's comments and discards this occurrence's.
-            return settings.GetOrCreateSection(sectionName: newSection, context.TakeComments);
+            return settings.GetSection(newSection)
+                ?? settings.CreateSection(sectionName: newSection, context.TakeComments());
         }
 
         if (IsProperty(line: line, out string? key, out string? value, out string? lineComment))
