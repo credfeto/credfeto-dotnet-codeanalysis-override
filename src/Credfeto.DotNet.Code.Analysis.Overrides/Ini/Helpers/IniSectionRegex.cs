@@ -22,8 +22,10 @@ internal static partial class IniSectionRegex
     [GeneratedRegex(pattern: @"^\s*[#;](?<Comment>.*)", options: REGEX_OPTIONS, matchTimeoutMilliseconds: TIMEOUT_MS)]
     public static partial Regex Comment();
 
+    // A "#"/";" only starts an inline comment when preceded by whitespace; editorconfig treats an
+    // unspaced marker directly after the value text as part of the value, not a comment.
     [GeneratedRegex(
-        pattern: @"^\s*(?<Key>[\w\.\-_]+)\s*[=:]\s*(?<Value>.*?)\s*([#;](?<Comment>.*))?$",
+        pattern: @"^\s*(?<Key>[\w\.\-_]+)\s*[=:]\s*(?<Value>.*?)(?:\s+[#;](?<Comment>.*))?\s*$",
         options: REGEX_OPTIONS,
         matchTimeoutMilliseconds: TIMEOUT_MS
     )]

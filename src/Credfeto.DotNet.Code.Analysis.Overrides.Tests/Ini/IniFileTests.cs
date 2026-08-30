@@ -315,6 +315,66 @@ public sealed class IniFileTests : IntegrationTestBase
         Assert.Equal(expected: comments, actual: reloaded.PropertyBlockComment("key"));
     }
 
+    [Theory]
+    [InlineData("key =\n")]
+    [InlineData("key = \n")]
+    public static void LoadAcceptsEmptyPropertyValue(string content)
+    {
+        ISettings settings = IniFile.Load(content);
+
+        Assert.Equal(expected: string.Empty, actual: settings.Get("key"));
+    }
+
+    [Theory]
+    [InlineData("key =\n")]
+    [InlineData("[MySect]\nkey =\n")]
+    public static void RoundTripLoadAndSavePreservesEmptyPropertyValue(string content)
+    {
+        ISettings settings = IniFile.Load(content);
+        ISettings reloaded = IniFile.Load(settings.Save());
+
+        Assert.Equal(expected: settings.Get("key"), actual: reloaded.Get("key"));
+    }
+
+    [Theory]
+    [InlineData("[MySect]\nkey1 = a\n[MySect]\nkey2 = b\n")]
+    [InlineData("[MySect]\nkey1 = a\n\n[MySect]\nkey2 = b\n")]
+    public static void LoadMergesDuplicateSectionHeadersInsteadOfThrowing(string content)
+    {
+        ISettings settings = IniFile.Load(content);
+
+        INamedSection? section = settings.GetSection("MySect");
+        Assert.NotNull(section);
+        Assert.Equal(expected: "a", actual: section.Get("key1"));
+        Assert.Equal(expected: "b", actual: section.Get("key2"));
+    }
+
+    [Theory]
+    [InlineData("key = val#ue\n", "val#ue")]
+    [InlineData("key = val;ue\n", "val;ue")]
+    [InlineData("key = val #ue\n", "val")]
+    [InlineData("key = val ;ue\n", "val")]
+    public static void LoadOnlyTreatsHashOrSemicolonAsCommentWhenPrecededByWhitespace(
+        string content,
+        string expectedValue
+    )
+    {
+        ISettings settings = IniFile.Load(content);
+
+        Assert.Equal(expected: expectedValue, actual: settings.Get("key"));
+    }
+
+    [Fact]
+    public void RoundTripLoadAndSavePreservesUnspacedHashWithinValue()
+    {
+        const string original = "key = val#ue\n";
+
+        ISettings settings = IniFile.Load(original);
+        ISettings reloaded = IniFile.Load(settings.Save());
+
+        Assert.Equal(expected: "val#ue", actual: reloaded.Get("key"));
+    }
+
     [Fact]
     public async Task LoadAsyncWithNamedSectionReturnsCorrectSectionAsync()
     {

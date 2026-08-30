@@ -92,7 +92,12 @@ public static class IniFile
 
         if (IsSection(line: line, out string? newSection))
         {
-            currentSection = settings.CreateSection(sectionName: newSection, context.TakeComments());
+            IReadOnlyList<string> comments = context.TakeComments();
+
+            // Repeating a section header is legal (e.g. the same editorconfig glob twice) and is
+            // merged into the existing section rather than rejected, matching real-world parsers.
+            currentSection =
+                settings.GetSection(newSection) ?? settings.CreateSection(sectionName: newSection, comments);
 
             return currentSection;
         }

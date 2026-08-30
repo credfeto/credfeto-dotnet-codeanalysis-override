@@ -183,17 +183,27 @@ Example = 42
     }
 
     [Fact]
-    public void LoadGlobalWithLineComment()
+    public void LoadGlobalWithUnspacedHashIsPartOfValueNotAComment()
     {
+        // "#" is only an inline comment marker when preceded by whitespace; unspaced it is part of the value.
         const string original =
             @"global = true#This is a root config
 ";
-        const string expected =
+
+        ISettings file = IniFile.Load(original);
+
+        this.SaveAndCheck(file: file, expected: original);
+    }
+
+    [Fact]
+    public void LoadGlobalWithLineComment()
+    {
+        const string original =
             @"global = true # This is a root config
 ";
         ISettings file = IniFile.Load(original);
 
-        this.SaveAndCheck(file: file, expected: expected);
+        this.SaveAndCheck(file: file, expected: original);
     }
 
     [Fact]
@@ -204,7 +214,7 @@ Example = 42
 #Line 2
 
 #Line 3
-global = true#This is a root config
+global = true # This is a root config
 ";
         const string expected =
             @"# This is a block comment
