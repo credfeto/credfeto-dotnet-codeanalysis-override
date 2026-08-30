@@ -365,7 +365,7 @@ public sealed class IniFileTests : IntegrationTestBase
     }
 
     [Fact]
-    public void RoundTripLoadAndSavePreservesUnspacedHashWithinValue()
+    public static void RoundTripLoadAndSavePreservesUnspacedHashWithinValue()
     {
         const string original = "key = val#ue\n";
 
