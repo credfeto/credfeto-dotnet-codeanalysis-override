@@ -161,10 +161,7 @@ public static class IniFile
         IReadOnlyList<string> blockComment
     )
     {
-        if (Properties.IsInvalidPropertyValue(value))
-        {
-            throw new InvalidPropertyValueException();
-        }
+        Properties.RequireValidValue(value);
 
         section.Set(key: key, value: value);
         section.PropertyLineComment(key: key, comment: lineComment ?? string.Empty);

@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Exceptions;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini.Helpers;
 
@@ -23,5 +24,13 @@ internal static class Properties
 
         // Empty is a valid value (e.g. "key =" in an editorconfig); whitespace-only is not.
         return value.Length > 0 && string.IsNullOrWhiteSpace(value);
+    }
+
+    public static void RequireValidValue([NotNull] string? value)
+    {
+        if (IsInvalidPropertyValue(value))
+        {
+            throw new InvalidPropertyValueException();
+        }
     }
 }
