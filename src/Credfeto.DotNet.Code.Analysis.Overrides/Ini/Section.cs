@@ -15,14 +15,16 @@ internal sealed class Section : INamedSection
     private readonly Dictionary<string, PropertyValue> _properties;
     private readonly ISettings _settings;
     private List<string> _sectionComments;
+    private int _propertyOrder;
 
     public Section(ISettings settings, int order, string? name, IReadOnlyList<string> sectionComments)
     {
         this._settings = settings;
-        this._sectionComments = [..Comments.Clean(sectionComments)];
+        this._sectionComments = [.. Comments.Clean(sectionComments)];
         this.Order = order;
         this.Name = name;
         this._properties = new(StringComparer.OrdinalIgnoreCase);
+        this._propertyOrder = 0;
     }
 
     public int Order { get; }
@@ -34,9 +36,7 @@ internal sealed class Section : INamedSection
 
     public string? Get(string key)
     {
-        return this._properties.TryGetValue(key: key, out PropertyValue? propertyValue)
-            ? propertyValue.Value
-            : null;
+        return this._properties.TryGetValue(key: key, out PropertyValue? propertyValue) ? propertyValue.Value : null;
     }
 
     public void Set(string key, string value)
@@ -48,7 +48,7 @@ internal sealed class Section : INamedSection
             return;
         }
 
-        PropertyValue newProperty = new(value: value, lineComment: "", []);
+        PropertyValue newProperty = new(value: value, lineComment: "", [], order: ++this._propertyOrder);
         this._properties.Add(key: key, value: newProperty);
     }
 
@@ -61,10 +61,7 @@ internal sealed class Section : INamedSection
     {
         if (this._properties.TryGetValue(key: key, out PropertyValue? propertyValue))
         {
-            propertyValue.Comments =
-            [
-                ..comments.Select(Comments.Parse)
-            ];
+            propertyValue.Comments = [.. comments.Select(Comments.Parse)];
 
             return;
         }
@@ -98,15 +95,12 @@ internal sealed class Section : INamedSection
 
     public IReadOnlyList<string> SectionComment()
     {
-        return [..this._sectionComments];
+        return [.. this._sectionComments];
     }
 
     public void SectionComment(IReadOnlyList<string> comments)
     {
-        this._sectionComments =
-        [
-            ..comments.Select(Comments.Parse)
-        ];
+        this._sectionComments = [.. comments.Select(Comments.Parse)];
     }
 
     public ISettings ToSettings()
@@ -118,14 +112,14 @@ internal sealed class Section : INamedSection
     {
         if (!string.IsNullOrWhiteSpace(this.Name))
         {
-            stringBuilder = stringBuilder.AppendComments(comments: this._sectionComments)
-                                         .AppendLine($"[{this.Name}]");
+            stringBuilder = stringBuilder.AppendComments(comments: this._sectionComments).AppendLine($"[{this.Name}]");
         }
 
-        foreach ((string key, PropertyValue propertyValue) in this._properties)
+        foreach ((string key, PropertyValue propertyValue) in this._properties.OrderBy(item => item.Value.Order))
         {
-            stringBuilder = stringBuilder.AppendComments(comments: propertyValue.Comments)
-                                         .AppendProperty(key: key, value: propertyValue.Value, propertyValue.LineComment.Parse());
+            stringBuilder = stringBuilder
+                .AppendComments(comments: propertyValue.Comments)
+                .AppendProperty(key: key, value: propertyValue.Value, propertyValue.LineComment.Parse());
         }
 
         return stringBuilder;
@@ -134,11 +128,12 @@ internal sealed class Section : INamedSection
     [DebuggerDisplay("{Value}")]
     private sealed class PropertyValue
     {
-        public PropertyValue(string value, string lineComment, IReadOnlyList<string> comments)
+        public PropertyValue(string value, string lineComment, IReadOnlyList<string> comments, int order)
         {
             this.Value = value;
             this.LineComment = lineComment;
             this.Comments = comments;
+            this.Order = order;
         }
 
         public string Value { get; set; }
@@ -146,5 +141,7 @@ internal sealed class Section : INamedSection
         public string LineComment { get; set; }
 
         public IReadOnlyList<string> Comments { get; set; }
+
+        public int Order { get; }
     }
 }
