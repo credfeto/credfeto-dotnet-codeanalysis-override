@@ -12,10 +12,9 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 [DebuggerDisplay("{Name} Order {Order}")]
 internal sealed class Section : INamedSection
 {
-    private readonly Dictionary<string, PropertyValue> _properties;
+    private readonly OrderedDictionary<string, PropertyValue> _properties;
     private readonly ISettings _settings;
     private List<string> _sectionComments;
-    private int _propertyOrder;
 
     public Section(ISettings settings, int order, string? name, IReadOnlyList<string> sectionComments)
     {
@@ -24,7 +23,6 @@ internal sealed class Section : INamedSection
         this.Order = order;
         this.Name = name;
         this._properties = new(StringComparer.OrdinalIgnoreCase);
-        this._propertyOrder = 0;
     }
 
     public int Order { get; }
@@ -48,7 +46,7 @@ internal sealed class Section : INamedSection
             return;
         }
 
-        PropertyValue newProperty = new(value: value, lineComment: "", [], order: ++this._propertyOrder);
+        PropertyValue newProperty = new(value: value, lineComment: "", []);
         this._properties.Add(key: key, value: newProperty);
     }
 
@@ -115,7 +113,7 @@ internal sealed class Section : INamedSection
             stringBuilder = stringBuilder.AppendComments(comments: this._sectionComments).AppendLine($"[{this.Name}]");
         }
 
-        foreach ((string key, PropertyValue propertyValue) in this._properties.OrderBy(item => item.Value.Order))
+        foreach ((string key, PropertyValue propertyValue) in this._properties)
         {
             stringBuilder = stringBuilder
                 .AppendComments(comments: propertyValue.Comments)
@@ -128,12 +126,11 @@ internal sealed class Section : INamedSection
     [DebuggerDisplay("{Value}")]
     private sealed class PropertyValue
     {
-        public PropertyValue(string value, string lineComment, IReadOnlyList<string> comments, int order)
+        public PropertyValue(string value, string lineComment, IReadOnlyList<string> comments)
         {
             this.Value = value;
             this.LineComment = lineComment;
             this.Comments = comments;
-            this.Order = order;
         }
 
         public string Value { get; set; }
@@ -141,7 +138,5 @@ internal sealed class Section : INamedSection
         public string LineComment { get; set; }
 
         public IReadOnlyList<string> Comments { get; set; }
-
-        public int Order { get; }
     }
 }
