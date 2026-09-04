@@ -92,34 +92,82 @@ public static class IniFile
 
         if (IsSection(line: line, out string? newSection))
         {
-            currentSection = settings.CreateSection(sectionName: newSection, context.TakeComments());
+            // Repeating a section header is legal (e.g. the same editorconfig glob twice) and is
+            // merged into the existing section rather than rejected, matching real-world parsers.
+            // The buffer is always drained here, whether or not a new section is created, so that
+            // a merge discards this occurrence's comments instead of leaking them into whatever is
+            // parsed next.
+            IReadOnlyList<string> comments = context.TakeComments();
 
-            return currentSection;
+            return settings.GetSection(newSection) ?? settings.CreateSection(sectionName: newSection, comments);
         }
 
         if (IsProperty(line: line, out string? key, out string? value, out string? lineComment))
         {
-            currentSection = currentSection switch
+            return ProcessPropertyLine(
+                currentSection: currentSection,
+                key: key,
+                value: value,
+                lineComment: lineComment,
+                blockComment: context.TakeComments()
+            );
+        }
+
+        throw new UnknownFormatException(line);
+    }
+
+    private static ISection ProcessPropertyLine(
+        ISection currentSection,
+        string key,
+        string value,
+        string? lineComment,
+        IReadOnlyList<string> blockComment
+    )
+    {
+        // A repeated key within a section is legal (e.g. the same editorconfig rule set twice)
+        // and is last-wins, matching real-world parsers, rather than rejected. Programmatic
+        // creation via CreateProperty still throws on a duplicate key.
+        return currentSection.Get(key) is not null
+            ? ReplaceProperty(
+                section: currentSection,
+                key: key,
+                value: value,
+                lineComment: lineComment,
+                blockComment: blockComment
+            )
+            : currentSection switch
             {
                 INamedSection namedSection => namedSection
                     .CreateProperty(key)
                     .WithValue(value)
                     .WithOptionalLineComment(lineComment)
-                    .WithOptionalBlockComment(context.TakeComments())
+                    .WithOptionalBlockComment(blockComment)
                     .Apply(),
                 ISettings globalSettings => globalSettings
                     .CreateProperty(key)
                     .WithValue(value)
                     .WithOptionalLineComment(lineComment)
-                    .WithOptionalBlockComment(context.TakeComments())
+                    .WithOptionalBlockComment(blockComment)
                     .Apply(),
                 _ => throw new UnreachableException("Unsupported section type"),
             };
+    }
 
-            return currentSection;
-        }
+    private static ISection ReplaceProperty(
+        ISection section,
+        string key,
+        string value,
+        string? lineComment,
+        IReadOnlyList<string> blockComment
+    )
+    {
+        Properties.RequireValidValue(value);
 
-        throw new UnknownFormatException(line);
+        section.Set(key: key, value: value);
+        section.PropertyLineComment(key: key, comment: lineComment ?? string.Empty);
+        section.PropertyBlockComment(key: key, comments: blockComment);
+
+        return section;
     }
 
     private static bool IsProperty(

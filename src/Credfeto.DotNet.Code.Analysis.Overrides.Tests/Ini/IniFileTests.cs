@@ -315,6 +315,123 @@ public sealed class IniFileTests : IntegrationTestBase
         Assert.Equal(expected: comments, actual: reloaded.PropertyBlockComment("key"));
     }
 
+    [Theory]
+    [InlineData("key =\n")]
+    [InlineData("key = \n")]
+    public static void LoadAcceptsEmptyPropertyValue(string content)
+    {
+        ISettings settings = IniFile.Load(content);
+
+        Assert.Equal(expected: string.Empty, actual: settings.Get("key"));
+    }
+
+    [Theory]
+    [InlineData("key =\n")]
+    [InlineData("[MySect]\nkey =\n")]
+    public static void RoundTripLoadAndSavePreservesEmptyPropertyValue(string content)
+    {
+        ISettings settings = IniFile.Load(content);
+        ISettings reloaded = IniFile.Load(settings.Save());
+
+        Assert.Equal(expected: settings.Get("key"), actual: reloaded.Get("key"));
+    }
+
+    [Theory]
+    [InlineData("[MySect]\nkey1 = a\n[MySect]\nkey2 = b\n")]
+    [InlineData("[MySect]\nkey1 = a\n\n[MySect]\nkey2 = b\n")]
+    public static void LoadMergesDuplicateSectionHeadersInsteadOfThrowing(string content)
+    {
+        ISettings settings = IniFile.Load(content);
+
+        INamedSection? section = settings.GetSection("MySect");
+        Assert.NotNull(section);
+        Assert.Equal(expected: "a", actual: section.Get("key1"));
+        Assert.Equal(expected: "b", actual: section.Get("key2"));
+    }
+
+    [Fact]
+    public static void LoadDiscardsCommentBeforeDuplicateSectionHeaderInsteadOfLeakingToNextProperty()
+    {
+        const string content = "[MySect]\nkey1 = a\n; note\n[MySect]\nkey2 = b\n";
+
+        ISettings settings = IniFile.Load(content);
+
+        INamedSection? section = settings.GetSection("MySect");
+        Assert.NotNull(section);
+        Assert.Equal(expected: [], actual: section.PropertyBlockComment("key2"));
+    }
+
+    [Fact]
+    public static void LoadTakesLastValueForDuplicateKeyInGlobalSectionInsteadOfThrowing()
+    {
+        const string content = "key = a\nkey = b\n";
+
+        ISettings settings = IniFile.Load(content);
+
+        Assert.Equal(expected: "b", actual: settings.Get("key"));
+    }
+
+    [Fact]
+    public static void LoadTakesLastValueForDuplicateKeyInNamedSectionInsteadOfThrowing()
+    {
+        const string content = "[MySect]\nkey = a\nkey = b\n";
+
+        ISettings settings = IniFile.Load(content);
+
+        INamedSection? section = settings.GetSection("MySect");
+        Assert.NotNull(section);
+        Assert.Equal(expected: "b", actual: section.Get("key"));
+    }
+
+    [Fact]
+    public static void LoadTakesLastValueForDuplicateKeyAcrossMergedDuplicateSectionHeaders()
+    {
+        const string content = "[MySect]\nkey = a\n[MySect]\nkey = b\n";
+
+        ISettings settings = IniFile.Load(content);
+
+        INamedSection? section = settings.GetSection("MySect");
+        Assert.NotNull(section);
+        Assert.Equal(expected: "b", actual: section.Get("key"));
+    }
+
+    [Fact]
+    public static void RoundTripLoadAndSaveTakesLastValueForDuplicateKey()
+    {
+        const string content = "key = a\nkey = b\n";
+
+        ISettings settings = IniFile.Load(content);
+        ISettings reloaded = IniFile.Load(settings.Save());
+
+        Assert.Equal(expected: "b", actual: reloaded.Get("key"));
+    }
+
+    [Theory]
+    [InlineData("key = val#ue\n", "val#ue")]
+    [InlineData("key = val;ue\n", "val;ue")]
+    [InlineData("key = val #ue\n", "val")]
+    [InlineData("key = val ;ue\n", "val")]
+    public static void LoadOnlyTreatsHashOrSemicolonAsCommentWhenPrecededByWhitespace(
+        string content,
+        string expectedValue
+    )
+    {
+        ISettings settings = IniFile.Load(content);
+
+        Assert.Equal(expected: expectedValue, actual: settings.Get("key"));
+    }
+
+    [Fact]
+    public static void RoundTripLoadAndSavePreservesUnspacedHashWithinValue()
+    {
+        const string original = "key = val#ue\n";
+
+        ISettings settings = IniFile.Load(original);
+        ISettings reloaded = IniFile.Load(settings.Save());
+
+        Assert.Equal(expected: "val#ue", actual: reloaded.Get("key"));
+    }
+
     [Fact]
     public async Task LoadAsyncWithNamedSectionReturnsCorrectSectionAsync()
     {

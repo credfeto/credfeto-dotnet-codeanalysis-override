@@ -65,7 +65,7 @@ public sealed class RuleChangeTests : IntegrationTestBase
     [InlineData("AnalyzerA", "RULE001", "WARNING", "First rule")]
     [InlineData("AnalyzerB", "RULE002", "NONE", "Second rule")]
     [InlineData("AnalyzerC", "RULE003", "INFO", "Third rule")]
-    public void AllPropertiesAreSetFromConstructor(string ruleSet, string rule, string state, string description)
+    public static void AllPropertiesAreSetFromConstructor(string ruleSet, string rule, string state, string description)
     {
         RuleChange ruleChange = new(ruleSet: ruleSet, rule: rule, state: state, description: description);
 
