@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Exceptions;
 using FunFair.Test.Common;
@@ -133,5 +134,45 @@ public sealed class SectionTests : IntegrationTestBase
         ISettings returned = section.ToSettings();
 
         Assert.Same(expected: settings, actual: returned);
+    }
+
+    [Fact]
+    public void SaveAppendsNewlyAddedPropertyAfterDeleteReusesSlot()
+    {
+        ISettings settings = IniFile.Create();
+        INamedSection section = settings.CreateSection(sectionName: "TestSection", []);
+        section.Set(key: "key1", value: "value1");
+        section.Set(key: "key2", value: "value2");
+        section.Set(key: "key3", value: "value3");
+
+        section.Delete("key2");
+        section.Set(key: "key4", value: "value4");
+
+        string content = settings.Save();
+
+        int key1Index = content.IndexOf("key1", StringComparison.Ordinal);
+        int key3Index = content.IndexOf("key3", StringComparison.Ordinal);
+        int key4Index = content.IndexOf("key4", StringComparison.Ordinal);
+
+        Assert.True(key1Index < key3Index, "key1 should appear before key3");
+        Assert.True(key3Index < key4Index, "key3 should appear before newly added key4");
+    }
+
+    [Fact]
+    public void SaveDoesNotReorderPropertyWhenValueIsUpdated()
+    {
+        ISettings settings = IniFile.Create();
+        INamedSection section = settings.CreateSection(sectionName: "TestSection", []);
+        section.Set(key: "key1", value: "value1");
+        section.Set(key: "key2", value: "value2");
+
+        section.Set(key: "key1", value: "updated");
+
+        string content = settings.Save();
+
+        int key1Index = content.IndexOf("key1", StringComparison.Ordinal);
+        int key2Index = content.IndexOf("key2", StringComparison.Ordinal);
+
+        Assert.True(key1Index < key2Index, "key1 should keep its original position after being updated");
     }
 }

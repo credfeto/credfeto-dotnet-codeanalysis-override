@@ -23,6 +23,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - globalconfig command now saves newly added rules instead of silently discarding them
 - RuleSet.LoadAsync/SaveAsync now perform genuine async file I/O and CancellationToken is threaded through the update commands
 - IniFile parser now accepts empty property values, merges duplicate section headers on load instead of throwing, treats duplicate keys within a section as last-wins instead of throwing, and only treats '#'/';' as an inline comment marker when preceded by whitespace (fixes #42)
+- Section.Save now preserves explicit property insertion order instead of relying on Dictionary enumeration order, so a property added after a prior delete is appended rather than emitted mid-file
 ### Changed
 - Drop net9.0 target framework support; target net10.0 only (#51)
 - IniFile parsing no longer accumulates comment lines with O(N^2) ImmutableArray copies, and Load(string) avoids a redundant line-buffer copy
