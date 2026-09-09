@@ -27,7 +27,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Changed
 - Drop net9.0 target framework support; target net10.0 only (#51)
 - IniFile parsing no longer accumulates comment lines with O(N^2) ImmutableArray copies, and Load(string) avoids a redundant line-buffer copy
-- SDK - Updated DotNet SDK to 10.0.400
+- SDK - Updated DotNet SDK to 10.0.401
 ### Deprecated
 ### Removed
 ### Deployment Changes
