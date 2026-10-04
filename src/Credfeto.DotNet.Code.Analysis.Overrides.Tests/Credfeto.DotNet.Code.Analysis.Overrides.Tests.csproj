@@ -60,7 +60,7 @@
   </ItemGroup>
   <Import Project="$(SolutionDir)UnitTests.props" Condition="Exists('$(SolutionDir)UnitTests.props')"/>
   <ItemGroup>
-    <ProjectReference Include="..\Credfeto.DotNet.Code.Analysis.Overrides\Credfeto.DotNet.Code.Analysis.Overrides.csproj" />
+    <ProjectReference Include="../Credfeto.DotNet.Code.Analysis.Overrides/Credfeto.DotNet.Code.Analysis.Overrides.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FunFair.Test.Common" Version="6.4.3.2685" IncludeAssets="compile;runtime"/>
