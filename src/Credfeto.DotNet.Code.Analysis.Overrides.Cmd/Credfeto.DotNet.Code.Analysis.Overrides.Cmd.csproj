@@ -67,7 +67,7 @@
     <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-8g4q-xg66-9fp4" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Credfeto.DotNet.Code.Analysis.Overrides\Credfeto.DotNet.Code.Analysis.Overrides.csproj" />
+    <ProjectReference Include="../Credfeto.DotNet.Code.Analysis.Overrides/Credfeto.DotNet.Code.Analysis.Overrides.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Cocona" Version="2.2.0" IncludeAssets="compile;runtime" />
