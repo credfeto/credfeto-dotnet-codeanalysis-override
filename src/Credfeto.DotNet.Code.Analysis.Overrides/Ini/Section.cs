@@ -22,7 +22,7 @@ internal sealed class Section : INamedSection
         this._sectionComments = [.. Comments.Clean(sectionComments)];
         this.Order = order;
         this.Name = name;
-        this._properties = new(StringComparer.OrdinalIgnoreCase);
+        this._properties = [with(StringComparer.OrdinalIgnoreCase)];
     }
 
     public int Order { get; }
