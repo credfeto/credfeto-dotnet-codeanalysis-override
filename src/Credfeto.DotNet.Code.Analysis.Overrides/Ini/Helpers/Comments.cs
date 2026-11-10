@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Ini.Helpers;
@@ -11,7 +12,7 @@ internal static class Comments
             return string.Empty;
         }
 
-        if (comment.StartsWith(' '))
+        if (comment.StartsWith(' ', StringComparison.Ordinal))
         {
             return comment.TrimEnd();
         }
