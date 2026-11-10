@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini.Exceptions;
 using FunFair.Test.Common;
+using NSubstitute;
 using Xunit;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Tests.Ini;
@@ -431,6 +435,60 @@ public sealed class IniFileTests : IntegrationTestBase
         ISettings reloaded = IniFile.Load(settings.Save());
 
         Assert.Equal(expected: "val#ue", actual: reloaded.Get("key"));
+    }
+
+    [Fact]
+    public static void SaveWritesBlankCommentMarkerForTrailingBlankBlockCommentLine()
+    {
+        ISettings settings = IniFile.Create();
+        settings.Set(key: "key", value: "value");
+        settings.PropertyBlockComment(key: "key", comments: [" note", ""]);
+
+        string saved = settings.Save();
+
+        string expected = "# note" + Environment.NewLine + "#" + Environment.NewLine + "key = value";
+        Assert.Contains(expected, saved, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public static void ProcessPropertyLineThrowsUnreachableExceptionForUnsupportedSectionType()
+    {
+        ISection section = Substitute.For<ISection>();
+        section.Get("key").Returns((string?)null);
+
+        Assert.Throws<UnreachableException>(() => InvokeProcessPropertyLine(section: section, lineComment: "comment"));
+    }
+
+    [Fact]
+    public static void ProcessPropertyLineReplacesExistingPropertyWithEmptyLineCommentWhenLineCommentIsNull()
+    {
+        ISection section = Substitute.For<ISection>();
+        section.Get("key").Returns("old");
+
+        ISection result = InvokeProcessPropertyLine(section: section, lineComment: null);
+
+        Assert.Same(expected: section, actual: result);
+        section.Received(1).Set(key: "key", value: "value");
+        section.Received(1).PropertyLineComment(key: "key", comment: string.Empty);
+    }
+
+    private static ISection InvokeProcessPropertyLine(ISection section, string? lineComment)
+    {
+        MethodInfo? method = typeof(IniFile).GetMethod(
+            name: "ProcessPropertyLine",
+            bindingAttr: BindingFlags.NonPublic | BindingFlags.Static
+        );
+        Assert.NotNull(method);
+
+        object? result = method.Invoke(
+            obj: null,
+            invokeAttr: BindingFlags.DoNotWrapExceptions,
+            binder: null,
+            parameters: [section, "key", "value", lineComment, Array.Empty<string>()],
+            culture: CultureInfo.InvariantCulture
+        );
+
+        return Assert.IsAssignableFrom<ISection>(result);
     }
 
     [Fact]
