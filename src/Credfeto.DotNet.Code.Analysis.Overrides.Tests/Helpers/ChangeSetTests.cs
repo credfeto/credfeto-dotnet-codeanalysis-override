@@ -45,6 +45,35 @@ public sealed class ChangeSetTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task LoadAsyncReturnsEmptyListForJsonNullAsync()
+    {
+        CancellationToken cancellationToken = this.CancellationToken();
+        string tempFile = Path.GetTempFileName();
+
+        try
+        {
+            await File.WriteAllTextAsync(
+                path: tempFile,
+                contents: "null",
+                encoding: Encoding.UTF8,
+                cancellationToken: cancellationToken
+            );
+
+            IReadOnlyList<RuleChange> result = await ChangeSet.LoadAsync(
+                changesFileName: tempFile,
+                cancellationToken: cancellationToken
+            );
+
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
+    }
+
+    [Fact]
     public async Task LoadAsyncReturnsSingleItemFromJsonAsync()
     {
         CancellationToken cancellationToken = this.CancellationToken();
