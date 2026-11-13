@@ -28,8 +28,8 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 ### Changed
 - Drop net9.0 target framework support; target net10.0 only (#51)
 - IniFile parsing no longer accumulates comment lines with O(N^2) ImmutableArray copies, and Load(string) avoids a redundant line-buffer copy
-- SDK - Updated DotNet SDK to 11.0.100-rc.3.26522.148
 - Target .NET 11 and enable runtime-async (#70)
+- SDK - Updated DotNet SDK to 11.0.100
 ### Deprecated
 ### Removed
 ### Deployment Changes
