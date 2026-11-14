@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using Cocona;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
@@ -25,6 +27,64 @@ public sealed class ProgramTests : IntegrationTestBase
             ILoggerFactory loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
 
             Assert.NotNull(loggerFactory);
+        }
+    }
+
+    [Fact]
+    public async Task MainRunsCommandWithEmptyChangesAndLeavesSuccessExitCode()
+    {
+        string changesFile = Path.GetTempFileName();
+        int originalExitCode = Environment.ExitCode;
+
+        try
+        {
+            await File.WriteAllTextAsync(
+                path: changesFile,
+                contents: "[]",
+                encoding: Encoding.UTF8,
+                cancellationToken: this.CancellationToken()
+            );
+            Environment.ExitCode = ExitCodes.Error;
+
+            await Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.Main([
+                "ruleset",
+                "-r",
+                "non-existent.ruleset",
+                "-c",
+                changesFile,
+            ]);
+
+            Assert.Equal(expected: ExitCodes.Success, actual: Environment.ExitCode);
+        }
+        finally
+        {
+            Environment.ExitCode = originalExitCode;
+            File.Delete(changesFile);
+        }
+    }
+
+    [Fact]
+    public async Task RunGuardedAsyncHandlesThrownExceptionAndSetsErrorExitCode()
+    {
+        ILoggerFactory loggerFactory = Substitute.For<ILoggerFactory>();
+        loggerFactory.CreateLogger(Arg.Any<string>()).Returns(this.GetTypedLogger<ProgramTests>());
+        int originalExitCode = Environment.ExitCode;
+
+        try
+        {
+            Environment.ExitCode = ExitCodes.Success;
+
+            await Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.RunGuardedAsync(
+                run: () => throw new IOException("Test failure"),
+                loggerFactory: loggerFactory
+            );
+
+            Assert.Equal(expected: ExitCodes.Error, actual: Environment.ExitCode);
+            loggerFactory.Received(1).CreateLogger("Program");
+        }
+        finally
+        {
+            Environment.ExitCode = originalExitCode;
         }
     }
 

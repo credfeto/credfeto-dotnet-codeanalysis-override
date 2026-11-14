@@ -16,7 +16,7 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Cmd;
 
 internal static class Program
 {
-    private static async Task Main(string[] args)
+    internal static async Task Main(string[] args)
     {
         Console.WriteLine($"{VersionInformation.Product} {VersionInformation.Version}");
         Console.WriteLine();
@@ -28,14 +28,19 @@ internal static class Program
 
             host.AddCommands<Commands>();
 
-            try
-            {
-                await host.RunAsync(CancellationToken.None);
-            }
-            catch (Exception exception)
-            {
-                Environment.ExitCode = HandleUnhandledException(exception: exception, loggerFactory: loggerFactory);
-            }
+            await RunGuardedAsync(run: () => host.RunAsync(CancellationToken.None), loggerFactory: loggerFactory);
+        }
+    }
+
+    internal static async Task RunGuardedAsync(Func<Task> run, ILoggerFactory loggerFactory)
+    {
+        try
+        {
+            await run();
+        }
+        catch (Exception exception)
+        {
+            Environment.ExitCode = HandleUnhandledException(exception: exception, loggerFactory: loggerFactory);
         }
     }
 
