@@ -9,4 +9,7 @@ internal static partial class CommandsLoggingExtensions
 
     [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Changing {ruleSet}/{rule} to {state}")]
     public static partial void ChangingState(this ILogger<Commands> logger, string ruleSet, string rule, string state);
+
+    [LoggerMessage(EventId = 3, Level = LogLevel.Information, Message = "Self-test passed")]
+    public static partial void SelfTestPassed(this ILogger<Commands> logger);
 }

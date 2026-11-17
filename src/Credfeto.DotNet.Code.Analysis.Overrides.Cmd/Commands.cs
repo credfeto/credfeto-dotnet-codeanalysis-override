@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -7,6 +8,7 @@ using Cocona;
 using Cocona.Application;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.LoggingExtensions;
+using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Setup;
 using Credfeto.DotNet.Code.Analysis.Overrides.Helpers;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 using Credfeto.DotNet.Code.Analysis.Overrides.Models;
@@ -123,6 +125,15 @@ internal sealed class Commands
         {
             await IniFile.SaveAsync(fileName: rulesetFileName, settings: ruleSet, cancellationToken: cancellationToken);
         }
+    }
+
+    [Command("self-test", Description = "Check the tool starts without doing any work (same as --self-test)")]
+    public int RunSelfTest([FromService] IServiceProvider services)
+    {
+        SelfTest.Verify(services);
+        this._logger.SelfTestPassed();
+
+        return ExitCodes.Success;
     }
 
     private static CancellationToken GetCancellationToken(ICoconaAppContextAccessor contextAccessor)
