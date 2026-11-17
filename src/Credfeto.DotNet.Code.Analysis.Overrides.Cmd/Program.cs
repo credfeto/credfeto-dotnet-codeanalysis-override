@@ -21,6 +21,18 @@ internal static class Program
         Console.WriteLine($"{VersionInformation.Product} {VersionInformation.Version}");
         Console.WriteLine();
 
+        if (SelfTest.IsRequested(args))
+        {
+            // The switch is not passed on, so nothing reaches Cocona's command dispatch.
+            Environment.ExitCode = await SelfTest.RunAsync(
+                createApp: () => CreateApp([]),
+                error: Console.Error,
+                cancellationToken: CancellationToken.None
+            );
+
+            return;
+        }
+
         using (CoconaApp host = CreateApp(args))
         {
             ILoggerFactory loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();

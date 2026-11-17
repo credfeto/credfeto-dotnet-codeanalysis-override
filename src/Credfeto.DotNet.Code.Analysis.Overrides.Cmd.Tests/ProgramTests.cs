@@ -64,6 +64,120 @@ public sealed class ProgramTests : IntegrationTestBase
     }
 
     [Fact]
+    public async Task MainWithSelfTestSwitchLeavesSuccessExitCode()
+    {
+        int originalExitCode = Environment.ExitCode;
+
+        try
+        {
+            Environment.ExitCode = ExitCodes.Error;
+
+            await Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.Main(["--self-test"]);
+
+            Assert.Equal(expected: ExitCodes.Success, actual: Environment.ExitCode);
+        }
+        finally
+        {
+            Environment.ExitCode = originalExitCode;
+        }
+    }
+
+    [Fact]
+    public async Task MainWithSelfTestCommandLeavesSuccessExitCode()
+    {
+        int originalExitCode = Environment.ExitCode;
+
+        try
+        {
+            Environment.ExitCode = ExitCodes.Error;
+
+            await Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.Main(["self-test"]);
+
+            Assert.Equal(expected: ExitCodes.Success, actual: Environment.ExitCode);
+        }
+        finally
+        {
+            Environment.ExitCode = originalExitCode;
+        }
+    }
+
+    [Fact]
+    public async Task MainWithSelfTestSwitchDoesNotRunCommandOrTouchFiles()
+    {
+        string changesFile = Path.GetTempFileName();
+        string rulesetFile = Path.GetTempFileName();
+        int originalExitCode = Environment.ExitCode;
+
+        try
+        {
+            await File.WriteAllTextAsync(
+                path: changesFile,
+                contents: """[{"ruleSet":"TestAnalyzer","rule":"TEST001","state":"Warning","description":"Test Rule"}]""",
+                encoding: Encoding.UTF8,
+                cancellationToken: this.CancellationToken()
+            );
+            await File.WriteAllTextAsync(
+                path: rulesetFile,
+                contents: """<RuleSet Name="Test" ToolsVersion="16.0"><Rules AnalyzerId="TestAnalyzer"><Rule Id="TEST001" Action="None" /></Rules></RuleSet>""",
+                encoding: Encoding.UTF8,
+                cancellationToken: this.CancellationToken()
+            );
+            byte[] before = await File.ReadAllBytesAsync(
+                path: rulesetFile,
+                cancellationToken: this.CancellationToken()
+            );
+            Environment.ExitCode = ExitCodes.Error;
+
+            await Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.Main([
+                "ruleset",
+                "-r",
+                rulesetFile,
+                "-c",
+                changesFile,
+                "--self-test",
+            ]);
+
+            byte[] after = await File.ReadAllBytesAsync(path: rulesetFile, cancellationToken: this.CancellationToken());
+            Assert.Equal(expected: ExitCodes.Success, actual: Environment.ExitCode);
+            Assert.Equal(expected: before, actual: after);
+        }
+        finally
+        {
+            Environment.ExitCode = originalExitCode;
+            File.Delete(changesFile);
+            File.Delete(rulesetFile);
+        }
+    }
+
+    [Fact]
+    public async Task MainHelpListsSelfTestCommand()
+    {
+        TextWriter originalOut = Console.Out;
+        int originalExitCode = Environment.ExitCode;
+
+        await using (StringWriter output = new())
+        {
+            try
+            {
+                Console.SetOut(TextWriter.Synchronized(output));
+
+                await Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.Main(["--help"]);
+            }
+            finally
+            {
+                Console.SetOut(originalOut);
+                Environment.ExitCode = originalExitCode;
+            }
+
+            Assert.Contains(
+                expectedSubstring: "--self-test",
+                actualString: output.ToString(),
+                comparisonType: StringComparison.Ordinal
+            );
+        }
+    }
+
+    [Fact]
     public async Task RunGuardedAsyncHandlesThrownExceptionAndSetsErrorExitCode()
     {
         ILoggerFactory loggerFactory = Substitute.For<ILoggerFactory>();

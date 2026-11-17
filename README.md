@@ -61,6 +61,17 @@ dotnet tool install Credfeto.DotNet.Code.Analysis.Overrides.Cmd
 ]
 ```
 
+### Self-test
+
+```bash
+dotnet code-analysis --self-test
+```
+
+Checks that the tool can start (dependency injection, logging and the core library load) without doing any work: it reads or writes no files and makes no network calls. Any other arguments are ignored when `--self-test` is present. The same check is available as the `self-test` command, which is listed in `--help`.
+
+* Exit code `0`: the tool started correctly.
+* Exit code `1`: start-up failed, and a one-line reason starting `Self-test failed:` is written to stderr.
+
 ## Build Status
 
 | Branch  | Status                                                                                                                                                                                                                                                                          |

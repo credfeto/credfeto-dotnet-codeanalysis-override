@@ -15,6 +15,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Unit tests for Credfeto.DotNet.Code.Analysis.Overrides.Cmd
 - Increased code coverage to 100% for Credfeto.DotNet.Code.Analysis.Overrides
 - Benchmark regression test asserting linear allocation behaviour for IniFile parsing of large comment blocks
+- Added a `--self-test` switch that proves the tool can start without doing any work (#74)
 ### Fixed
 - Fixed InternalsVisibleTo declared via csproj AssemblyAttribute item, which violated the MustNotUseAssemblyAttributeItems build check
 - ruleset command now exits non-zero when a changes-file rule is missing from the target ruleset

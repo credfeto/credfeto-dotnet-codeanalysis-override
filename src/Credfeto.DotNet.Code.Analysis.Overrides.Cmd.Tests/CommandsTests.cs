@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -19,6 +19,19 @@ public sealed class CommandsTests : IntegrationTestBase
 
     public CommandsTests(ITestOutputHelper output)
         : base(output) { }
+
+    [Fact]
+    public void RunSelfTest_WithApplicationServices_ReturnsSuccessExitCode()
+    {
+        Commands commands = new(this.GetTypedLogger<Commands>());
+
+        using (CoconaApp host = Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.CreateApp([]))
+        {
+            int exitCode = commands.RunSelfTest(host.Services);
+
+            Assert.Equal(ExitCodes.Success, exitCode);
+        }
+    }
 
     [Fact]
     public async Task UpdateRulesetAsync_WithEmptyChanges_ReturnsWithoutReadingRuleset()
@@ -294,8 +307,7 @@ public sealed class CommandsTests : IntegrationTestBase
 
     private static ICoconaAppContextAccessor CreateContextAccessor(in CancellationToken cancellationToken)
     {
-        MethodInfo method =
-            typeof(object).GetMethod(nameof(object.ToString))
+        MethodInfo method = typeof(object).GetMethod(nameof(object.ToString))
             ?? throw new InvalidOperationException("object.ToString() method not found via reflection");
         CommandDescriptor descriptor = new(
             methodInfo: method,
