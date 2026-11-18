@@ -32,6 +32,7 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - IniFile parsing no longer accumulates comment lines with O(N^2) ImmutableArray copies, and Load(string) avoids a redundant line-buffer copy
 - Target .NET 11 and enable runtime-async (#70)
 - SDK - Updated DotNet SDK to 11.0.100
+- Publish the code-analysis tool as a native AOT, trimmed dotnet tool and move to ConsoleAppFramework (#71)
 ### Deprecated
 ### Removed
 ### Deployment Changes
