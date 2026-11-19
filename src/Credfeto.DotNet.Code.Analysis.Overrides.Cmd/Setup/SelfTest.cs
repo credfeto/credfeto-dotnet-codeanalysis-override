@@ -31,9 +31,9 @@ internal static class SelfTest
             await using (ServiceProvider services = createServices())
             {
                 Verify(services);
-
-                return ExitCodes.Success;
             }
+
+            return ExitCodes.Success;
         }
         catch (Exception exception)
         {
