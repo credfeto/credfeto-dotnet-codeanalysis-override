@@ -3,8 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using Cocona;
-using Cocona.Builder;
+using ConsoleAppFramework;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.LoggingExtensions;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Setup;
@@ -23,9 +22,9 @@ internal static class Program
 
         if (SelfTest.IsRequested(args))
         {
-            // The switch is not passed on, so nothing reaches Cocona's command dispatch.
+            // The switch is not passed on, so nothing reaches the command dispatch.
             Environment.ExitCode = await SelfTest.RunAsync(
-                createApp: () => CreateApp([]),
+                createServices: CreateServices,
                 error: Console.Error,
                 cancellationToken: CancellationToken.None
             );
@@ -33,15 +32,41 @@ internal static class Program
             return;
         }
 
-        using (CoconaApp host = CreateApp(args))
+        await using (ServiceProvider services = CreateServices())
         {
-            ILoggerFactory loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
-            Logging.InitializeLogging(loggerFactory: loggerFactory);
+            ILoggerFactory loggerFactory = services.GetRequiredService<ILoggerFactory>();
 
-            host.AddCommands<Commands>();
-
-            await RunGuardedAsync(run: () => host.RunAsync(CancellationToken.None), loggerFactory: loggerFactory);
+            await RunGuardedAsync(
+                run: () => RunCommandAsync(args: args, services: services),
+                loggerFactory: loggerFactory
+            );
         }
+    }
+
+    internal static async Task RunCommandAsync(string[] args, IServiceProvider services)
+    {
+        if (Commands.IsUnknownCommand(args))
+        {
+            Environment.ExitCode = ExitCodes.Error;
+        }
+
+        ConsoleApp.ServiceProvider = services;
+
+        ConsoleApp.ConsoleAppBuilder app = ConsoleApp.Create();
+        app.UseFilter<UnhandledExceptionFilter>();
+        app.Add<Commands>();
+
+        // The caller owns the service provider and disposes it after the run.
+        await app.RunAsync(
+            args: CommandArguments.ExpandAliases(args),
+            disposeServiceProvider: false,
+            cancellationToken: CancellationToken.None
+        );
+        await CommandArguments.WriteHelpExtrasAsync(
+            args: args,
+            output: Console.Out,
+            cancellationToken: CancellationToken.None
+        );
     }
 
     internal static async Task RunGuardedAsync(Func<Task> run, ILoggerFactory loggerFactory)
@@ -93,15 +118,17 @@ internal static class Program
         return ExitCodes.Error;
     }
 
-    internal static CoconaApp CreateApp(string[] args)
+    internal static ServiceProvider CreateServices()
     {
-        CoconaAppBuilder builder = CoconaApp.CreateBuilder(args);
-        builder.Services.AddServices();
-        builder
-            .Logging.AddFilter(category: "Microsoft", level: LogLevel.Warning)
-            .AddFilter(category: "System.Net.Http.HttpClient", level: LogLevel.Warning)
-            .ClearProviders();
-
-        return builder.Build();
+        return new ServiceCollection()
+            .AddLogging(builder =>
+                builder
+                    .AddFilter(category: "Microsoft", level: LogLevel.Warning)
+                    .AddFilter(category: "System.Net.Http.HttpClient", level: LogLevel.Warning)
+                    .ClearProviders()
+                    .AddConsoleLogging()
+            )
+            .AddServices()
+            .BuildServiceProvider();
     }
 }

@@ -1,13 +1,12 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Cocona;
-using Cocona.Builder;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Setup;
 using FunFair.Test.Common;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NSubstitute;
 using Xunit;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests.Setup;
@@ -37,7 +36,7 @@ public sealed class SelfTestTests : IntegrationTestBase
         await using (StringWriter error = new())
         {
             int exitCode = await SelfTest.RunAsync(
-                createApp: () => Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.CreateApp([]),
+                createServices: Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.CreateServices,
                 error: error,
                 cancellationToken: this.CancellationToken()
             );
@@ -53,7 +52,7 @@ public sealed class SelfTestTests : IntegrationTestBase
         await using (StringWriter error = new())
         {
             int exitCode = await SelfTest.RunAsync(
-                createApp: () =>
+                createServices: () =>
                     throw new InvalidOperationException("First line" + Environment.NewLine + "second line"),
                 error: error,
                 cancellationToken: this.CancellationToken()
@@ -72,7 +71,7 @@ public sealed class SelfTestTests : IntegrationTestBase
         await using (StringWriter error = new())
         {
             int exitCode = await SelfTest.RunAsync(
-                createApp: CreateAppWithoutLogging,
+                createServices: CreateServicesWithoutLogging,
                 error: error,
                 cancellationToken: this.CancellationToken()
             );
@@ -95,13 +94,23 @@ public sealed class SelfTestTests : IntegrationTestBase
         }
     }
 
-    private static CoconaApp CreateAppWithoutLogging()
+    [Fact]
+    public void VerifyWithLoggingButNoCommandLoggerThrows()
     {
-        CoconaAppBuilder builder = CoconaApp.CreateBuilder([]);
-        builder.Services.AddSingleton<ILoggerFactory>(_ =>
-            throw new InvalidOperationException("Logging is unavailable")
-        );
+        using (
+            ServiceProvider services = new ServiceCollection()
+                .AddSingleton(Substitute.For<ILoggerFactory>())
+                .BuildServiceProvider()
+        )
+        {
+            Assert.Throws<InvalidOperationException>(() => SelfTest.Verify(services));
+        }
+    }
 
-        return builder.Build();
+    private static ServiceProvider CreateServicesWithoutLogging()
+    {
+        return new ServiceCollection()
+            .AddSingleton<ILoggerFactory>(_ => throw new InvalidOperationException("Logging is unavailable"))
+            .BuildServiceProvider();
     }
 }

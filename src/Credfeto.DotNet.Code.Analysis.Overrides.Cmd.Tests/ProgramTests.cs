@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using Cocona;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using FunFair.Test.Common;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,22 +18,29 @@ public sealed class ProgramTests : IntegrationTestBase
         : base(output) { }
 
     [Fact]
-    public void CreateAppBuildsHostWithLoggingConfigured()
+    public void CreateServicesBuildsProviderWithLoggingConfigured()
     {
         // Fully qualified: unqualified "Program" does not resolve to Cmd.Program here.
-        using (CoconaApp host = Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.CreateApp([]))
+        using (ServiceProvider services = Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.CreateServices())
         {
-            ILoggerFactory loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
+            ILoggerFactory loggerFactory = services.GetRequiredService<ILoggerFactory>();
 
             Assert.NotNull(loggerFactory);
         }
     }
 
-    [Fact]
-    public async Task MainRunsCommandWithEmptyChangesAndLeavesSuccessExitCode()
+    [Theory]
+    [InlineData("ruleset", "-r", "-c")]
+    [InlineData("ruleset", "--ruleset", "--changes")]
+    [InlineData("globalconfig", "-r", "-c")]
+    [InlineData("globalconfig", "--ruleset", "--changes")]
+    public async Task MainRunsCommandWithEmptyChangesAndLeavesSuccessExitCodeAsync(
+        string command,
+        string rulesetOption,
+        string changesOption
+    )
     {
         string changesFile = Path.GetTempFileName();
-        int originalExitCode = Environment.ExitCode;
 
         try
         {
@@ -44,23 +50,61 @@ public sealed class ProgramTests : IntegrationTestBase
                 encoding: Encoding.UTF8,
                 cancellationToken: this.CancellationToken()
             );
-            Environment.ExitCode = ExitCodes.Error;
 
-            await Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.Main([
-                "ruleset",
-                "-r",
-                "non-existent.ruleset",
-                "-c",
-                changesFile,
-            ]);
+            int exitCode = await RunMainAsync(
+                initialExitCode: ExitCodes.Error,
+                command,
+                rulesetOption,
+                "non-existent.file",
+                changesOption,
+                changesFile
+            );
 
-            Assert.Equal(expected: ExitCodes.Success, actual: Environment.ExitCode);
+            Assert.Equal(expected: ExitCodes.Success, actual: exitCode);
         }
         finally
         {
-            Environment.ExitCode = originalExitCode;
             File.Delete(changesFile);
         }
+    }
+
+    [Fact]
+    public async Task MainWithMissingChangesFileLeavesErrorExitCode()
+    {
+        int exitCode = await RunMainAsync(
+            initialExitCode: ExitCodes.Success,
+            "ruleset",
+            "-r",
+            "non-existent.ruleset",
+            "-c",
+            Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".json")
+        );
+
+        Assert.Equal(expected: ExitCodes.Error, actual: exitCode);
+    }
+
+    [Fact]
+    public async Task MainWithMissingRequiredOptionLeavesErrorExitCode()
+    {
+        int exitCode = await RunMainAsync(initialExitCode: ExitCodes.Success, "ruleset", "-r", "non-existent.ruleset");
+
+        Assert.NotEqual(expected: ExitCodes.Success, actual: exitCode);
+    }
+
+    [Fact]
+    public async Task MainWithUnknownCommandLeavesErrorExitCode()
+    {
+        int exitCode = await RunMainAsync(initialExitCode: ExitCodes.Success, "not-a-command");
+
+        Assert.Equal(expected: ExitCodes.Error, actual: exitCode);
+    }
+
+    [Fact]
+    public async Task MainWithHelpSwitchLeavesExitCodeUnchanged()
+    {
+        int exitCode = await RunMainAsync(initialExitCode: ExitCodes.Success, "--help");
+
+        Assert.Equal(expected: ExitCodes.Success, actual: exitCode);
     }
 
     [Fact]
@@ -235,6 +279,24 @@ public sealed class ProgramTests : IntegrationTestBase
 
         Assert.Equal(expected: ExitCodes.Error, actual: exitCode);
         loggerFactory.Received(1).CreateLogger("Program");
+    }
+
+    private static async Task<int> RunMainAsync(int initialExitCode, params string[] args)
+    {
+        int originalExitCode = Environment.ExitCode;
+
+        try
+        {
+            Environment.ExitCode = initialExitCode;
+
+            await Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.Main(args);
+
+            return Environment.ExitCode;
+        }
+        finally
+        {
+            Environment.ExitCode = originalExitCode;
+        }
     }
 
     // Exceptions are not xunit-serializable, so the theory is keyed by type name instead.

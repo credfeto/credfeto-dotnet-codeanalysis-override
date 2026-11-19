@@ -1,11 +1,11 @@
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
-using Cocona;
-using Cocona.Application;
+using ConsoleAppFramework;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.LoggingExtensions;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Setup;
@@ -19,15 +19,31 @@ namespace Credfeto.DotNet.Code.Analysis.Overrides.Cmd;
 [SuppressMessage(
     category: "Microsoft.Performance",
     checkId: "CA1812:AvoidUninstantiatedInternalClasses",
-    Justification = "Instantiated by Cocona"
+    Justification = "Instantiated by ConsoleAppFramework"
 )]
 [SuppressMessage(
     category: "ReSharper",
     checkId: "ClassNeverInstantiated.Global",
-    Justification = "Instantiated by Cocona"
+    Justification = "Instantiated by ConsoleAppFramework"
 )]
 internal sealed class Commands
 {
+    public const string Ruleset = "ruleset";
+    public const string GlobalConfig = "globalconfig";
+    public const string SelfTestCommand = "self-test";
+
+    // ConsoleAppFramework shows help for anything else without failing, so these are the only first arguments
+    // that must not be reported as an unknown command.
+    private static readonly FrozenSet<string> KnownFirstArguments = new[]
+    {
+        Ruleset,
+        GlobalConfig,
+        SelfTestCommand,
+        CommandArguments.ShortHelp,
+        CommandArguments.LongHelp,
+        "--version",
+    }.ToFrozenSet(StringComparer.Ordinal);
+
     private readonly ILogger<Commands> _logger;
 
     [SuppressMessage(
@@ -40,29 +56,36 @@ internal sealed class Commands
         this._logger = logger;
     }
 
-    [Command("ruleset", Description = "Update codeanalysiis.ruleset")]
-    [SuppressMessage(category: "ReSharper", checkId: "UnusedMember.Global", Justification = "Used by Cocona")]
-    public async Task<int> UpdateRulesetAsync(
-        [Option(name: "ruleset", ['r'], Description = "ruleset file to change")] string rulesetFileName,
-        [Option(name: "changes", ['c'], Description = "file of changes to apply")] string changesFileName,
-        [FromService] ICoconaAppContextAccessor contextAccessor
-    )
+    public static bool IsUnknownCommand(IReadOnlyList<string> args)
     {
-        CancellationToken cancellationToken = GetCancellationToken(contextAccessor);
-        IReadOnlyList<RuleChange> changes = await ChangeSet.LoadAsync(changesFileName, cancellationToken);
+        return args is [string first, ..] && !KnownFirstArguments.Contains(first);
+    }
 
-        if (changes is [])
+    [Command(Ruleset)]
+    [SuppressMessage(
+        category: "ReSharper",
+        checkId: "UnusedMember.Global",
+        Justification = "Used by ConsoleAppFramework"
+    )]
+    public async Task<int> UpdateRulesetAsync(string ruleset, string changes, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<RuleChange> changeSet = await ChangeSet.LoadAsync(
+            changesFileName: changes,
+            cancellationToken: cancellationToken
+        );
+
+        if (changeSet is [])
         {
-            this._logger.NoChangesInFile(changesFileName);
+            this._logger.NoChangesInFile(changes);
 
             return ExitCodes.Success;
         }
 
         bool changed = false;
         bool ruleNotPresent = false;
-        XmlDocument ruleSet = await RuleSet.LoadAsync(fileName: rulesetFileName, cancellationToken: cancellationToken);
+        XmlDocument ruleSet = await RuleSet.LoadAsync(fileName: ruleset, cancellationToken: cancellationToken);
 
-        foreach (RuleChange change in changes)
+        foreach (RuleChange change in changeSet)
         {
             this._logger.ChangingState(change.RuleSet, rule: change.Rule, change.State);
             RuleChangeOutcome outcome = ruleSet.ChangeValue(
@@ -78,40 +101,39 @@ internal sealed class Commands
 
         if (changed)
         {
-            await RuleSet.SaveAsync(project: rulesetFileName, doc: ruleSet, cancellationToken: cancellationToken);
+            await RuleSet.SaveAsync(project: ruleset, doc: ruleSet, cancellationToken: cancellationToken);
         }
 
         return ruleNotPresent ? ExitCodes.Error : ExitCodes.Success;
     }
 
-    [Command("globalconfig", Description = "Update .globalconfig")]
-    [SuppressMessage(category: "ReSharper", checkId: "UnusedMember.Global", Justification = "Used by Cocona")]
-    public async Task UpdateGlobalConfigAsync(
-        [Option(name: "ruleset", ['r'], Description = "ruleset file to change")] string rulesetFileName,
-        [Option(name: "changes", ['c'], Description = "file of changes to apply")] string changesFileName,
-        [FromService] ICoconaAppContextAccessor contextAccessor
-    )
+    [Command(GlobalConfig)]
+    [SuppressMessage(
+        category: "ReSharper",
+        checkId: "UnusedMember.Global",
+        Justification = "Used by ConsoleAppFramework"
+    )]
+    public async Task<int> UpdateGlobalConfigAsync(string ruleset, string changes, CancellationToken cancellationToken)
     {
-        CancellationToken cancellationToken = GetCancellationToken(contextAccessor);
-        IReadOnlyList<RuleChange> changes = await ChangeSet.LoadAsync(
-            changesFileName: changesFileName,
+        IReadOnlyList<RuleChange> changeSet = await ChangeSet.LoadAsync(
+            changesFileName: changes,
             cancellationToken: cancellationToken
         );
 
-        if (changes is [])
+        if (changeSet is [])
         {
-            this._logger.NoChangesInFile(changesFileName);
+            this._logger.NoChangesInFile(changes);
 
-            return;
+            return ExitCodes.Success;
         }
 
         bool changed = false;
-        ISettings ruleSet = await IniFile.LoadAsync(fileName: rulesetFileName, cancellationToken: cancellationToken);
+        ISettings settings = await IniFile.LoadAsync(fileName: ruleset, cancellationToken: cancellationToken);
 
-        foreach (RuleChange change in changes)
+        foreach (RuleChange change in changeSet)
         {
             this._logger.ChangingState(ruleSet: change.RuleSet, rule: change.Rule, state: change.State);
-            bool hasChanged = ruleSet.ChangeValue(
+            bool hasChanged = settings.ChangeValue(
                 ruleSet: change.RuleSet,
                 rule: change.Rule,
                 name: change.Description,
@@ -123,21 +145,18 @@ internal sealed class Commands
 
         if (changed)
         {
-            await IniFile.SaveAsync(fileName: rulesetFileName, settings: ruleSet, cancellationToken: cancellationToken);
+            await IniFile.SaveAsync(fileName: ruleset, settings: settings, cancellationToken: cancellationToken);
         }
+
+        return ExitCodes.Success;
     }
 
-    [Command("self-test", Description = "Check the tool starts without doing any work (same as --self-test)")]
-    public int RunSelfTest([FromService] IServiceProvider services)
+    [Command(SelfTestCommand)]
+    public int RunSelfTest([FromServices] IServiceProvider services)
     {
         SelfTest.Verify(services);
         this._logger.SelfTestPassed();
 
         return ExitCodes.Success;
-    }
-
-    private static CancellationToken GetCancellationToken(ICoconaAppContextAccessor contextAccessor)
-    {
-        return contextAccessor.Current?.CancellationToken ?? CancellationToken.None;
     }
 }
