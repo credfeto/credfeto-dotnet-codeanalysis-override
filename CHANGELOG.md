@@ -27,12 +27,16 @@ Please ADD ALL Changes to the UNRELEASED SECTION and not a specific release
 - Section.Save now preserves explicit property insertion order instead of relying on Dictionary enumeration order, so a property added after a prior delete is appended rather than emitted mid-file
 - Replaced backslash path separators with forward slashes in csproj and slnx files flagged by check-msbuild-path-separator
 - Program.Main now catches exceptions from the Cocona host run and logs a clean error with a non-zero exit code, instead of letting unhandled exceptions escape (fixes #64)
+- Fixed RepositoryUrl and PackageProjectUrl package metadata so they point to the correct repository
 ### Changed
 - Drop net9.0 target framework support; target net10.0 only (#51)
 - IniFile parsing no longer accumulates comment lines with O(N^2) ImmutableArray copies, and Load(string) avoids a redundant line-buffer copy
 - Target .NET 11 and enable runtime-async (#70)
 - SDK - Updated DotNet SDK to 11.0.100
-- Publish the code-analysis tool as a native AOT, trimmed dotnet tool and move to ConsoleAppFramework (#71)
+- Cmd tool is published as a Native AOT, trimmed dotnet tool (linux-x64 native package; other platforms use the 'any' package) (#71)
+- Replaced Cocona with ConsoleAppFramework for command-line parsing (#71)
+- Replaced Serilog with Microsoft.Extensions.Logging.Console; the log output format has changed (#71)
+- Library Credfeto.DotNet.Code.Analysis.Overrides is marked IsAotCompatible
 ### Deprecated
 ### Removed
 ### Deployment Changes
