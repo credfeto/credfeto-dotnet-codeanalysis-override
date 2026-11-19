@@ -10,6 +10,8 @@ dotnet tool to allow configured overrides for CodeAnalysis.ruleset files allowin
 dotnet tool install Credfeto.DotNet.Code.Analysis.Overrides.Cmd
 ```
 
+On linux-x64 the tool installs as a single Native AOT executable, which needs no .NET runtime. Every other platform gets the framework-dependent build, which needs the .NET runtime.
+
 ## Usage
 
 ```bash

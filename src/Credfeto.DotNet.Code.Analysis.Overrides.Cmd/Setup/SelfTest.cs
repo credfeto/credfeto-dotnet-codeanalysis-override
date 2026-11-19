@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Cocona;
-using Cocona.Application;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using Credfeto.DotNet.Code.Analysis.Overrides.Ini;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,22 +21,19 @@ internal static class SelfTest
     }
 
     public static async Task<int> RunAsync(
-        Func<CoconaApp> createApp,
+        Func<ServiceProvider> createServices,
         TextWriter error,
         CancellationToken cancellationToken
     )
     {
         try
         {
-            using (CoconaApp host = createApp())
+            await using (ServiceProvider services = createServices())
             {
-                ILoggerFactory loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
-                Logging.InitializeLogging(loggerFactory: loggerFactory);
-
-                Verify(host.Services);
-
-                return ExitCodes.Success;
+                Verify(services);
             }
+
+            return ExitCodes.Success;
         }
         catch (Exception exception)
         {
@@ -54,7 +49,6 @@ internal static class SelfTest
     public static void Verify(IServiceProvider services)
     {
         _ = services.GetRequiredService<ILoggerFactory>();
-        _ = services.GetRequiredService<ICoconaAppContextAccessor>();
         _ = ActivatorUtilities.CreateInstance<Commands>(services);
 
         // Loads the core library without reading or writing any file.

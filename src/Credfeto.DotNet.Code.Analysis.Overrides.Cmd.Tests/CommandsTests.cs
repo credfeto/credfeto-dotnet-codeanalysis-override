@@ -1,33 +1,61 @@
 using System;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Cocona;
-using Cocona.Application;
-using Cocona.Command;
 using Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Constants;
 using FunFair.Test.Common;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Tests;
 
 public sealed class CommandsTests : IntegrationTestBase
 {
-    private static readonly ICoconaAppContextAccessor NullContextAccessor = new CoconaAppContextAccessor();
-
     public CommandsTests(ITestOutputHelper output)
         : base(output) { }
+
+    [Fact]
+    public static void IsUnknownCommand_WithNoArguments_ReturnsFalse()
+    {
+        Assert.False(
+            condition: Commands.IsUnknownCommand([]),
+            userMessage: "No arguments should show help, not an error"
+        );
+    }
+
+    [Fact]
+    public static void IsUnknownCommand_WithKnownCommandFollowedByOptions_ReturnsFalse()
+    {
+        Assert.False(
+            condition: Commands.IsUnknownCommand(["ruleset", "-r", "not-a-command", "-c", "--unknown"]),
+            userMessage: "Only the first argument names the command"
+        );
+    }
+
+    [Theory]
+    [InlineData("ruleset", false)]
+    [InlineData("globalconfig", false)]
+    [InlineData("self-test", false)]
+    [InlineData("-h", false)]
+    [InlineData("--help", false)]
+    [InlineData("--version", false)]
+    [InlineData("not-a-command", true)]
+    [InlineData("Ruleset", true)]
+    [InlineData("--unknown", true)]
+    public static void IsUnknownCommand_ChecksTheFirstArgument(string firstArgument, bool expected)
+    {
+        Assert.Equal(expected: expected, actual: Commands.IsUnknownCommand([firstArgument]));
+    }
 
     [Fact]
     public void RunSelfTest_WithApplicationServices_ReturnsSuccessExitCode()
     {
         Commands commands = new(this.GetTypedLogger<Commands>());
 
-        using (CoconaApp host = Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.CreateApp([]))
+        using (ServiceProvider services = Credfeto.DotNet.Code.Analysis.Overrides.Cmd.Program.CreateServices())
         {
-            int exitCode = commands.RunSelfTest(host.Services);
+            int exitCode = commands.RunSelfTest(services);
 
             Assert.Equal(ExitCodes.Success, exitCode);
         }
@@ -43,9 +71,9 @@ public sealed class CommandsTests : IntegrationTestBase
         try
         {
             int exitCode = await commands.UpdateRulesetAsync(
-                rulesetFileName: "non-existent.ruleset",
-                changesFileName: changesFile,
-                contextAccessor: NullContextAccessor
+                ruleset: "non-existent.ruleset",
+                changes: changesFile,
+                cancellationToken: cancellationToken
             );
 
             Assert.Equal(ExitCodes.Success, exitCode);
@@ -73,9 +101,9 @@ public sealed class CommandsTests : IntegrationTestBase
         try
         {
             int exitCode = await commands.UpdateRulesetAsync(
-                rulesetFileName: rulesetFile,
-                changesFileName: changesFile,
-                contextAccessor: NullContextAccessor
+                ruleset: rulesetFile,
+                changes: changesFile,
+                cancellationToken: cancellationToken
             );
 
             Assert.Equal(ExitCodes.Error, exitCode);
@@ -104,9 +132,9 @@ public sealed class CommandsTests : IntegrationTestBase
         try
         {
             int exitCode = await commands.UpdateRulesetAsync(
-                rulesetFileName: rulesetFile,
-                changesFileName: changesFile,
-                contextAccessor: NullContextAccessor
+                ruleset: rulesetFile,
+                changes: changesFile,
+                cancellationToken: cancellationToken
             );
 
             Assert.Equal(ExitCodes.Success, exitCode);
@@ -143,9 +171,9 @@ public sealed class CommandsTests : IntegrationTestBase
         try
         {
             int exitCode = await commands.UpdateRulesetAsync(
-                rulesetFileName: rulesetFile,
-                changesFileName: changesFile,
-                contextAccessor: NullContextAccessor
+                ruleset: rulesetFile,
+                changes: changesFile,
+                cancellationToken: cancellationToken
             );
 
             Assert.Equal(ExitCodes.Error, exitCode);
@@ -161,7 +189,7 @@ public sealed class CommandsTests : IntegrationTestBase
     }
 
     [Fact]
-    public async Task UpdateRulesetAsync_WithCancelledContextCancellationToken_ThrowsOperationCanceledException()
+    public async Task UpdateRulesetAsync_WithCancelledCancellationToken_ThrowsOperationCanceledException()
     {
         Commands commands = new(this.GetTypedLogger<Commands>());
         CancellationToken cancellationToken = this.CancellationToken();
@@ -171,13 +199,12 @@ public sealed class CommandsTests : IntegrationTestBase
         {
             using CancellationTokenSource cancelledSource = new();
             await cancelledSource.CancelAsync();
-            ICoconaAppContextAccessor contextAccessor = CreateContextAccessor(cancelledSource.Token);
 
             await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
                 commands.UpdateRulesetAsync(
-                    rulesetFileName: "non-existent.ruleset",
-                    changesFileName: changesFile,
-                    contextAccessor: contextAccessor
+                    ruleset: "non-existent.ruleset",
+                    changes: changesFile,
+                    cancellationToken: cancelledSource.Token
                 )
             );
         }
@@ -196,11 +223,13 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateGlobalConfigAsync(
-                rulesetFileName: "non-existent.globalconfig",
-                changesFileName: changesFile,
-                contextAccessor: NullContextAccessor
+            int exitCode = await commands.UpdateGlobalConfigAsync(
+                ruleset: "non-existent.globalconfig",
+                changes: changesFile,
+                cancellationToken: cancellationToken
             );
+
+            Assert.Equal(expected: ExitCodes.Success, actual: exitCode);
         }
         finally
         {
@@ -225,13 +254,14 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateGlobalConfigAsync(
-                rulesetFileName: configFile,
-                changesFileName: changesFile,
-                contextAccessor: NullContextAccessor
+            int exitCode = await commands.UpdateGlobalConfigAsync(
+                ruleset: configFile,
+                changes: changesFile,
+                cancellationToken: cancellationToken
             );
 
             DateTime afterTest = File.GetLastWriteTimeUtc(configFile);
+            Assert.Equal(expected: ExitCodes.Success, actual: exitCode);
             Assert.Equal(expected: beforeTest, actual: afterTest);
         }
         finally
@@ -257,13 +287,14 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateGlobalConfigAsync(
-                rulesetFileName: configFile,
-                changesFileName: changesFile,
-                contextAccessor: NullContextAccessor
+            int exitCode = await commands.UpdateGlobalConfigAsync(
+                ruleset: configFile,
+                changes: changesFile,
+                cancellationToken: cancellationToken
             );
 
             string saved = await File.ReadAllTextAsync(path: configFile, cancellationToken: cancellationToken);
+            Assert.Equal(expected: ExitCodes.Success, actual: exitCode);
             Assert.Contains("error", saved, StringComparison.Ordinal);
         }
         finally
@@ -289,13 +320,14 @@ public sealed class CommandsTests : IntegrationTestBase
 
         try
         {
-            await commands.UpdateGlobalConfigAsync(
-                rulesetFileName: configFile,
-                changesFileName: changesFile,
-                contextAccessor: NullContextAccessor
+            int exitCode = await commands.UpdateGlobalConfigAsync(
+                ruleset: configFile,
+                changes: changesFile,
+                cancellationToken: cancellationToken
             );
 
             string saved = await File.ReadAllTextAsync(path: configFile, cancellationToken: cancellationToken);
+            Assert.Equal(expected: ExitCodes.Success, actual: exitCode);
             Assert.Contains("dotnet_diagnostic.TEST002.severity", saved, StringComparison.Ordinal);
         }
         finally
@@ -303,29 +335,6 @@ public sealed class CommandsTests : IntegrationTestBase
             DeleteIfExists(changesFile);
             DeleteIfExists(configFile);
         }
-    }
-
-    private static ICoconaAppContextAccessor CreateContextAccessor(in CancellationToken cancellationToken)
-    {
-        MethodInfo method = typeof(object).GetMethod(nameof(object.ToString))
-            ?? throw new InvalidOperationException("object.ToString() method not found via reflection");
-        CommandDescriptor descriptor = new(
-            methodInfo: method,
-            target: null,
-            name: "test",
-            aliases: [],
-            description: string.Empty,
-            metadata: [],
-            parameters: [],
-            options: [],
-            arguments: [],
-            overloads: [],
-            optionLikeCommands: [],
-            flags: CommandFlags.None,
-            subCommands: null
-        );
-
-        return new CoconaAppContextAccessor { Current = new CoconaAppContext(descriptor, cancellationToken) };
     }
 
     private static async ValueTask<string> WriteJsonTempAsync(string content, CancellationToken cancellationToken)

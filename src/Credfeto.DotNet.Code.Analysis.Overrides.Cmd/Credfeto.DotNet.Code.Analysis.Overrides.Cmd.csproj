@@ -9,11 +9,13 @@
     <DebuggerSupport>true</DebuggerSupport>
     <Description>Dotnet code analys rule management tool</Description>
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
     <EnableConfigurationBindingGenerator>true</EnableConfigurationBindingGenerator>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <EnablePackageValidation>true</EnablePackageValidation>
     <EnableRequestDelegateGenerator>true</EnableRequestDelegateGenerator>
-    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <Features>strict;flow-analysis;runtime-async=on</Features>
@@ -23,9 +25,11 @@
     <IlcOptimizationPreference>Size</IlcOptimizationPreference>
     <ImplicitUsings>disable</ImplicitUsings>
     <IncludeSymbols>true</IncludeSymbols>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <IsAotCompatible>true</IsAotCompatible>
     <IsPackable>true</IsPackable>
     <IsPublishable>true</IsPublishable>
-    <IsTrimmable>false</IsTrimmable>
+    <IsTrimmable>true</IsTrimmable>
     <JsonSerializerIsReflectionEnabledByDefault>false</JsonSerializerIsReflectionEnabledByDefault>
     <LangVersion>latest</LangVersion>
     <NeutralLanguage>en-GB</NeutralLanguage>
@@ -37,19 +41,23 @@
     <OutputType>Exe</OutputType>
     <PackAsTool>true</PackAsTool>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/credfeto/credfeto-dotnet-codeanalysis-override</PackageProjectUrl>
     <PackageReleaseNotes>$(ReleaseNotes)</PackageReleaseNotes>
     <PackageTags>code-analysis;tool;manager</PackageTags>
     <Product>Code analysis rule manager</Product>
-    <PublishAot>false</PublishAot>
+    <PublishAot>true</PublishAot>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/credfeto-dotnet-codeanalysis-override</RepositoryUrl>
+    <RepositoryUrl>https://github.com/credfeto/credfeto-dotnet-codeanalysis-override</RepositoryUrl>
     <RunAOTCompilation>false</RunAOTCompilation>
     <RuntimeIdentifiers>win-x64;win-arm64;osx-x64;osx-arm64;linux-x64;linux-arm64</RuntimeIdentifiers>
+    <StripSymbols>true</StripSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <TargetFramework>net11.0</TargetFramework>
     <TieredCompilation>true</TieredCompilation>
     <TieredPGO>true</TieredPGO>
     <ToolCommandName>code-analysis</ToolCommandName>
+    <!-- Native AOT packages can only be built on the OS they target and CI packs on a single linux-x64 runner; any is the framework-dependent fallback for every other platform -->
+    <ToolPackageRuntimeIdentifiers>linux-x64;any</ToolPackageRuntimeIdentifiers>
     <TreatSpecificWarningsAsErrors />
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <UseSystemResourceKeys>true</UseSystemResourceKeys>
@@ -70,17 +78,14 @@
     <ProjectReference Include="../Credfeto.DotNet.Code.Analysis.Overrides/Credfeto.DotNet.Code.Analysis.Overrides.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Cocona" Version="2.2.0" IncludeAssets="compile;runtime" />
-    <PackageReference Include="Serilog.Enrichers.Demystifier" Version="1.0.3" IncludeAssets="compile;runtime" />
-    <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" IncludeAssets="compile;runtime" />
-    <PackageReference Include="Serilog.Enrichers.Process" Version="3.0.0" IncludeAssets="compile;runtime" />
-    <PackageReference Include="Serilog.Enrichers.Thread" Version="4.0.0" IncludeAssets="compile;runtime" />
-    <PackageReference Include="Serilog.Extensions.Logging" Version="9.0.2" IncludeAssets="compile;runtime" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" IncludeAssets="compile;runtime" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="11.0.0" IncludeAssets="compile;runtime" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="11.0.0" IncludeAssets="compile;runtime" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="11.0.0" IncludeAssets="compile;runtime" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="AsyncFixer" Version="1.6.0" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="codecracker.CSharp" Version="1.1.0" PrivateAssets="All" ExcludeAssets="runtime" />
+    <PackageReference Include="ConsoleAppFramework" Version="5.8.1" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="Credfeto.Enumeration.Source.Generation" Version="1.2.127.1366" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="Credfeto.Version.Information.Generator" Version="1.0.114.790" PrivateAssets="All" ExcludeAssets="runtime" />
     <PackageReference Include="CSharpIsNullAnalyzer" Version="0.1.593" PrivateAssets="all" ExcludeAssets="runtime" />
